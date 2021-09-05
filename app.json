@@ -8,6 +8,7 @@
         "prebuild": {
             "commands": [
                 "npm install",
+                "npx tsc",
                 "cd build/hooks && node prebuild"
             ]
         },
