@@ -1,0 +1,20 @@
+{
+    "name": "rowy-run",
+    "options": {
+        "allow-unauthenticated": true,
+        "memory": "2Gi"
+    },
+    "hooks": {
+        "prebuild": {
+            "commands": [
+                "npm install",
+                "cd build/hooks && node prebuild"
+            ]
+        },
+        "postcreate": {
+            "commands": [
+                "cd build/hooks && node postcreate"
+            ]
+        }
+    }
+}
