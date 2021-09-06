@@ -58,7 +58,12 @@ app.post('/inviteUser', async(req, res) => {
 
 
 
-
+  const port = process.env.PORT || 8080;
+  app.listen(port, () => {
+    console.log(`rowyRun: listening on port ${port}`);
+  });
+  
+  
 
 // Exports for testing purposes.
 module.exports = app;

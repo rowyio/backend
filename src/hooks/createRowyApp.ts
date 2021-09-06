@@ -70,7 +70,6 @@ export const createRowyApp = async (projectId:string)=>{
    
     try {
         const firebaseConfig = await getRowyApp(projectId)
-        console.log("firebaseConfig",firebaseConfig)
        const {secret,success,message}:any = await registerRowyApp(firebaseConfig)
        if(!success) throw new Error(message);
        let rowyService = require('../../rowy-service.json')
