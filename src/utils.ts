@@ -16,6 +16,7 @@ const userHasARequiredRole = async (token: string, roles: string[]) => {
 }
 export const restrictedRequest =(roles:string[])=> async (req: any,res:any, next:Function) => {
     const auth = req.get('Authorization');
+    if(!auth)return res.status(401).send('Unauthorized');
     const authToken = auth?.split(' ')[1];
     const authorized = await userHasARequiredRole(authToken,roles)
     if(authorized){

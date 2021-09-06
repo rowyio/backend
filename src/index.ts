@@ -1,7 +1,7 @@
 // --resolveJsonModule 
 import express from 'express'
 import { auth, db } from './firebaseConfig'
-//import { restrictedRequest } from './utils'
+import { restrictedRequest } from './utils'
 const app = express();
 // json is the default content-type for POST requests
 app.use(express.json());
@@ -11,23 +11,23 @@ app.get('/version', (req, res) => {
   res.send({ version: '1.0.0', date: '2021-09-5' });
 });
 
-
-app.get('/listCollections', async (req, res) => {
+app.get('/listCollections', restrictedRequest(["ADMIN"]),async (req, res) => {
   const { path } = req.query;
   if (path) {
-    db.doc(path as string).listCollections().then(collections => {
-      res.send(collections);
+    db.doc(decodeURIComponent(path as string)).listCollections().then(collections => {
+      
+      res.send(collections.map(collection => collection.id));
     });
   } else {
     db.listCollections().then(collections => {
-      res.send(collections);
+      res.send(collections.map(collection => collection.id));
     });
   }
 });
 
 
 // invite users
-app.post('/inviteUser', async (req, res) => {
+app.post('/inviteUser',restrictedRequest(["ADMIN"]),async (req, res) => {
   const usersCollection = '_rowy_/userManagement/users'
   try {
     const { email, roles } = req.body;
@@ -47,10 +47,6 @@ app.post('/inviteUser', async (req, res) => {
       // roles
       auth.setCustomUserClaims(newUser.uid, { roles });
     }
-
-
-
-
   } catch (error: any) {
     res.send({ error: error.message });
   }
