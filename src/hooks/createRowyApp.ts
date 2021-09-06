@@ -54,8 +54,7 @@ function httpsPost({body, ...options}:any){
     })
   }
 
-const registerRowyApp = async (subdomain:string,firebaseConfig:any)=>{
-    await httpsPost({
+const registerRowyApp = async (subdomain:string,firebaseConfig:any)=> httpsPost({
       hostname:'us-central1-rowy-service.cloudfunctions.net',
       path: `/addProject`,
       method: 'GET',
@@ -67,17 +66,19 @@ const registerRowyApp = async (subdomain:string,firebaseConfig:any)=>{
           firebaseConfig
       }
     })
-  }
+  
 export const createRowyApp = async (projectId:string)=>{
    
     try {
         const firebaseConfig = await getRowyApp(projectId)
         console.log("firebaseConfig",firebaseConfig)
-       const secret = await registerRowyApp(projectId,firebaseConfig)
+       const {secret,success,message}:any = await registerRowyApp(projectId,firebaseConfig)
+       if(!success) throw new Error(message);
        let rowyService = require('../rowy-service.json')
        rowyService.secret = secret
        require('fs').writeFileSync('../rowy-service.json',JSON.stringify(rowyService,null,2))
-    } catch (error) {
+      
+      } catch (error) {
         console.log(error)
     }
 }

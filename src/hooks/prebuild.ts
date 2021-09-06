@@ -56,7 +56,7 @@ async function start() {
     }
     await db.doc("_rowy_/publicSettings").set(publicSettings, { merge: true })
     console.log(chalk.green("Successfully created rowy app"))
-    const rowyAppURL = `https://${projectId}.rowy.app`
+    const rowyAppURL = `https://${projectId}.rowy.app/setup`
     console.log(chalk.hex('#4200ff').bold(`Open ${rowyAppURL} to get started`))
 }
 
