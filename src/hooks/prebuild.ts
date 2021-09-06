@@ -36,19 +36,19 @@ async function start() {
     await db.doc("_rowy_/userManagement").set(userManagement, { merge: true })
 
     // check if email exist on firebase auth
-    const user = await auth.getUserByEmail(gcpEmail)
-    if (!user) {
-        await auth.createUser({
-            email: gcpEmail,
-            emailVerified: true,
-            disabled: false
-        })
-    }
+    // const user = await auth.getUserByEmail(gcpEmail)
+    // if (!user) {
+    //     await auth.createUser({
+    //         email: gcpEmail,
+    //         emailVerified: true,
+    //         disabled: false
+    //     })
+    // }
 
     // 👉 Call the setClaims function. Set the email and roles here.
-    await setClaims(gcpEmail, {
-        roles: ["ADMIN"],
-    });
+    // await setClaims(gcpEmail, {
+    //     roles: ["ADMIN"],
+    // });
     const publicSettings = {
         signInOptions: [
             "google"
