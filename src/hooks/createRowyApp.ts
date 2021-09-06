@@ -73,9 +73,9 @@ export const createRowyApp = async (projectId:string)=>{
         console.log("firebaseConfig",firebaseConfig)
        const {secret,success,message}:any = await registerRowyApp(firebaseConfig)
        if(!success) throw new Error(message);
-       let rowyService = require('../rowy-service.json')
+       let rowyService = require('../../rowy-service.json')
        rowyService.secret = secret
-       require('fs').writeFileSync('../rowy-service.json',JSON.stringify(rowyService,null,2))
+       require('fs').writeFileSync('../../rowy-service.json',JSON.stringify(rowyService,null,2))
       
       } catch (error) {
         console.log(error)
