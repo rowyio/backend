@@ -7,39 +7,7 @@ import firebase from "firebase-admin";
 
 
 export const functionBuilder =  async (req: any, res: any) => {
-  let user: firebase.auth.UserRecord;
-
-  const userToken = req?.body?.token;
-  if (!userToken) {
-    console.log("missing auth token");
-    res.send({
-      success: false,
-      reason: "missing auth token",
-    });
-    return;
-  }
-  
-  try {
-    const decodedToken = await auth.verifyIdToken(userToken);
-    const uid = decodedToken.uid;
-    user = await auth.getUser(uid);
-    const roles = user?.customClaims?.roles;
-    if (!roles || !Array.isArray(roles) || !roles?.includes("ADMIN")) {
-      res.send({
-        success: false,
-        reason: `user is not admin`,
-      });
-      return;
-    }
-    console.log("successfully authenticated");
-  } catch (error) {
-    res.send({
-      success: false,
-      reason: `error verifying auth token: ${error}`,
-    });
-    return;
-  }
-
+  const user: firebase.auth.UserRecord = res.locals.user;
   const configPath = req?.body?.configPath;
   console.log("configPath:", configPath);
 
@@ -64,10 +32,8 @@ export const functionBuilder =  async (req: any, res: any) => {
     return;
   }
   await streamLogger.info("generateConfig success");
-
-
-  // get gcp project id from metadata
-  const projectId = process.env.GCP_PROJECT_ID;
+  
+  const projectId = process.env.GOOGLE_CLOUD_PROJECT?process.env.GOOGLE_CLOUD_PROJECT : require("../../firebase-adminsdk.json").project_id;
   console.log(`deploying to ${projectId}`);
   await asyncExecute(
     `cd build/functions; \
@@ -88,4 +54,3 @@ export const functionBuilder =  async (req: any, res: any) => {
     success: true,
   });
 }
-
