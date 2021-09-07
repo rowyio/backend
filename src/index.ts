@@ -3,6 +3,7 @@ import express from 'express'
 import { db } from './firebaseConfig'
 import { restrictedRequest } from './utils'
 import { deleteUser, impersonateUser, inviteUser, setUserRoles } from './userManagement';
+import { functionBuilder } from './functionBuilder';
 const app = express();
 // json is the default content-type for POST requests
 app.use(express.json());
@@ -45,6 +46,10 @@ deleteUser)
 app.post('/impersonateUser',restrictedRequest(["ADMIN"]),
 impersonateUser)
 
+
+// Function Builder
+app.post('/createFunction',restrictedRequest(["ADMIN"]),
+functionBuilder)
 
 //SECRET MANAGEMENT
 
