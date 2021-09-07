@@ -11,7 +11,6 @@ async function start() {
         rowyRunBuildStatus: "COMPLETE",
         rowyRunUrl: process.env.SERVICE_URL
     }
-    console.log(update)
     await db.doc("/_rowy_/settings").update(update)
 }
 

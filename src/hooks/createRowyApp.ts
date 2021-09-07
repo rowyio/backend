@@ -1,5 +1,5 @@
-import  https from 'https'
 const client = require("firebase-tools")
+import { httpsPost } from '../utils'
 const getRowyApp = (projectId:string) =>
   new Promise((resolve) => {
     const getSDKConfig = (appId:string) =>
@@ -31,28 +31,7 @@ const getRowyApp = (projectId:string) =>
         console.error(err);
       });
   });
-function httpsPost({body, ...options}:any){
-    return new Promise((resolve,reject) => {
-        const req = https.request({
-            method: 'POST',
-            ...options,
-        }, res => {
-          res.setEncoding('utf8')
-          let body = ''
-          res.on('data', chunk => {
-              body += chunk
-          })
-          res.on('end', () => {
-              resolve(JSON.parse(body))
-          })
-        })
-        req.on('error',reject);
-        if(body) {
-            req.write(JSON.stringify(body));
-        }
-        req.end();
-    })
-  }
+
 
 const registerRowyApp = async (firebaseConfig:any)=> httpsPost({
       hostname:'us-central1-rowy-service.cloudfunctions.net',

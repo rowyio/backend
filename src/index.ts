@@ -1,7 +1,8 @@
 // --resolveJsonModule 
 import express from 'express'
-import { auth, db } from './firebaseConfig'
+import { db } from './firebaseConfig'
 import { restrictedRequest } from './utils'
+import { deleteUser, impersonateUser, inviteUser, setUserRoles } from './userManagement';
 const app = express();
 // json is the default content-type for POST requests
 app.use(express.json());
@@ -26,31 +27,28 @@ app.get('/listCollections', restrictedRequest(["ADMIN"]),async (req, res) => {
 });
 
 
+// USER MANAGEMENT
+
 // invite users
-app.post('/inviteUser',restrictedRequest(["ADMIN"]),async (req, res) => {
-  const usersCollection = '_rowy_/userManagement/users'
-  try {
-    const { email, roles } = req.body;
-    // check if user exists
-    const userQuery = await db.collection(usersCollection).where('email', '==', email).get()
-    if (userQuery.docs.length !== 0) {
-      throw new Error('User already exists');
-    }
-    const user = await auth.getUserByEmail(email);
-    if (!user) {
-      // create user
-      const newUser = await auth.createUser({
-        email,
-        displayName: email,
-        disabled: false
-      });
-      // roles
-      auth.setCustomUserClaims(newUser.uid, { roles });
-    }
-  } catch (error: any) {
-    res.send({ error: error.message });
-  }
-})
+app.post('/inviteUser',restrictedRequest(["ADMIN"]),
+inviteUser)
+
+//set user roles
+app.post('/setUserRoles',restrictedRequest(["ADMIN"]),
+setUserRoles)
+
+// delete user
+app.delete('/deleteUser',restrictedRequest(["ADMIN"]),
+deleteUser)
+
+// impersonate user
+app.post('/impersonateUser',restrictedRequest(["ADMIN"]),
+impersonateUser)
+
+
+//SECRET MANAGEMENT
+
+// get secret
 
 
 
