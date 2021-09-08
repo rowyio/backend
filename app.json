@@ -14,6 +14,7 @@
         },
         "postcreate": {
             "commands": [
+                "ls",
                 "cd build/hooks && node postcreate"
             ]
         }
