@@ -2,15 +2,9 @@ import * as admin from "firebase-admin"
 import { createRowyApp } from "./createRowyApp"
 import { getGCPEmail,updateConfig } from "./utils"
 import chalk from 'chalk'
+import {db,auth} from '../firebaseConfig'
 const projectId = process.env.GOOGLE_CLOUD_PROJECT
-const credential = admin.credential.applicationDefault()
-admin.initializeApp({
-    credential,
-    databaseURL: `https://${projectId}.firebaseio.com`,
-});
 
-const db = admin.firestore();
-const auth = admin.auth()
 const setClaims = async (email: string, claims: any) => {
     const user = await auth.getUserByEmail(email);
     auth.setCustomUserClaims(user.uid, claims);
