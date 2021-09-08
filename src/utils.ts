@@ -12,7 +12,7 @@ export const restrictedRequest = (roles: string[]) => async (req: any, res: any,
     const user = await auth.getUser(uid);
     const userRoles :string[] = user.customClaims.roles;
     // user roles must have at least one of the roles
-    const authorized = roles.some(role => userRoles?.includes(role));
+    const authorized = roles.some(role => userRoles.includes(role));
     if (authorized) {
       res.locals.user = user;
       next();
