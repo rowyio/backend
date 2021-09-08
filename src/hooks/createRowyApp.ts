@@ -1,5 +1,6 @@
 const client = require("firebase-tools")
 import { httpsPost } from '../utils'
+import {updateConfig} from './utils'
 const getRowyApp = (projectId:string) =>
   new Promise((resolve) => {
     const getSDKConfig = (appId:string) =>
@@ -51,9 +52,7 @@ export const createRowyApp = async (projectId:string)=>{
         const firebaseConfig = await getRowyApp(projectId)
        const {secret,success,message}:any = await registerRowyApp(firebaseConfig)
        if(!success) throw new Error(message);
-       let rowyService = require('../../rowy-service.json')
-       rowyService.secret = secret
-       require('fs').writeFileSync('../../rowy-service.json',JSON.stringify(rowyService,null,2))
+       updateConfig('secret',secret)
       
       } catch (error) {
         console.log(error)

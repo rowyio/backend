@@ -1,6 +1,6 @@
 import * as admin from "firebase-admin"
 import { createRowyApp } from "./createRowyApp"
-import { getGCPEmail } from "./utils"
+import { getGCPEmail,updateConfig } from "./utils"
 import chalk from 'chalk'
 const projectId = process.env.GOOGLE_CLOUD_PROJECT
 const credential = admin.credential.applicationDefault()
@@ -19,6 +19,7 @@ async function start() {
     if (!projectId) {
         throw new Error("GOOGLE_CLOUD_PROJECT env variable is not set")
     }
+    updateConfig('projectId',projectId)
     const settings = {
         rowyRunBuildStatus: "BUILDING"
     }

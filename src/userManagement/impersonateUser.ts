@@ -16,9 +16,7 @@ export const impersonateUser = async (req: Request, res: Response) => {
         impersonatedUserEmail: email,
         impersonatorUid:uid,
     })
-
     res.send({ success: true ,token});
-
   } catch (error) {
     res.send({ error,success: false });
   }

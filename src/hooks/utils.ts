@@ -9,3 +9,9 @@ export const getGCPEmail = () => new Promise(async (resolve, reject) => {
     });
 })
 
+
+export const updateConfig = (key: string, value: any) => {
+    let rowyService = require('../../rowyConfig.json')
+       rowyService[key] = value
+       require('fs').writeFileSync('../../rowyConfig.json',JSON.stringify(rowyService,null,2))
+}

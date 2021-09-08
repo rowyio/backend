@@ -1,7 +1,7 @@
 // Initialize Firebase Admin
 import * as admin from "firebase-admin";
 
-const credential =  process.env.GOOGLE_CLOUD_PROJECT? admin.credential.applicationDefault():admin.credential.cert(require(`../firebase-adminsdk.json`))
+const credential =  process.env.DEV ? admin.credential.cert(require(`../firebase-adminsdk.json`)):admin.credential.applicationDefault()
 admin.initializeApp({
     credential
 });
