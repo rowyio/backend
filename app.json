@@ -12,10 +12,15 @@
                 "cd build/hooks && node prebuild"
             ]
         },
+        "precreate": {
+            "commands": [
+                "echo 'precreate'"
+            ]
+        },
         "postcreate": {
             "commands": [
-                "ls",
-                "cd build/hooks && node postcreate"
+                "echo 'postCreateTest'",
+                "cd hooks && node postcreate"
             ]
         }
     }
