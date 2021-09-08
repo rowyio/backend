@@ -4,13 +4,14 @@ import { db } from './firebaseConfig'
 import { restrictedRequest } from './utils'
 import { deleteUser, impersonateUser, inviteUser, setUserRoles } from './userManagement';
 import { functionBuilder } from './functionBuilder';
+import cors from'cors'       
 const app = express();
 // json is the default content-type for POST requests
 app.use(express.json());
-
+app.use(cors())
 // get version
 app.get('/version', (req, res) => {
-  res.send({ version: '1.0.0', date: '2021-09-5' });
+  res.send({ version: '1.0.0' });
 });
 
 app.get('/listCollections', restrictedRequest(["ADMIN"]),async (req, res) => {
@@ -43,7 +44,7 @@ app.delete('/deleteUser',restrictedRequest(["ADMIN"]),
 deleteUser)
 
 // impersonate user
-app.post('/impersonateUser',restrictedRequest(["ADMIN"]),
+app.get('/impersonateUser/:email',restrictedRequest(["ADMIN"]),
 impersonateUser)
 
 

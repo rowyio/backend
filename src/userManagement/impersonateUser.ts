@@ -3,10 +3,8 @@ import { Request, Response } from 'express'
 import { rowyUsersImpersonationLogs } from '../constants/Collections';
 export const impersonateUser = async (req: Request, res: Response) => {
   try {
-    const authHeader = req.get('Authorization') as string;
-    const authToken = authHeader.split(' ')[1];
-    const {uid} = await auth.verifyIdToken(authToken);
-    const { email } = req.body;
+    const impersonator = res.locals.user
+    const { email } = req.params;
     // check if user exists
     const user = await auth.getUserByEmail(email);
     const token = await auth.createCustomToken(user.uid);
@@ -14,9 +12,10 @@ export const impersonateUser = async (req: Request, res: Response) => {
         createdAt: new Date(),
         impersonatedUid: user.uid,
         impersonatedUserEmail: email,
-        impersonatorUid:uid,
+        impersonatorUid:impersonator.uid,
+        impersonatorEmail:impersonator.email,
     })
-    res.send({ success: true ,token});
+    res.send({ success: true ,token,message:`Authenticating as ${user.displayName}`});
   } catch (error) {
     res.send({ error,success: false });
   }
