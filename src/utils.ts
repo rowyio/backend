@@ -10,7 +10,7 @@ export const restrictedRequest = (roles: string[]) => async (req: any, res: any,
     const decodedToken = await auth.verifyIdToken(authToken);
     const uid = decodedToken.uid;
     const user = await auth.getUser(uid);
-    const userRoles = user?.customClaims?.roles;
+    const userRoles :string[] = user.customClaims.roles;
     // user roles must have at least one of the roles
     const authorized = roles.some(role => userRoles?.includes(role));
     if (authorized) {
