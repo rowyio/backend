@@ -6,7 +6,7 @@
   "main": "build/index.js",
   "scripts": {
     "start": "node build/index.js",
-    "dev":"nodemon",
+    "dev": "nodemon",
     "test": "mocha test/index.test.js --exit",
     "system-test": "NAME=Cloud mocha test/system.test.js --timeout=180000",
     "lint": "eslint '**/*.js'",
@@ -20,6 +20,7 @@
   "dependencies": {
     "@google-cloud/bigquery": "^5.8.0",
     "@google-cloud/firestore": "^4.15.0",
+    "@google-cloud/secret-manager": "^3.10.0",
     "chalk": "^4.1.2",
     "express": "^4.17.1",
     "firebase-admin": "^9.2.0",

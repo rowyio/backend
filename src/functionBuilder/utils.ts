@@ -124,7 +124,7 @@ async function createStreamLogger(tableConfigPath: string) {
   }[] = [];
   const logRef = db
     .doc(tableConfigPath)
-    .collection("ftBuildLogs")
+    .collection("buildLogs")
     .doc(startTimeStamp.toString());
   await logRef.set({ startTimeStamp, status: "BUILDING" });
 
