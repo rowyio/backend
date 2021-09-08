@@ -5,7 +5,7 @@ export const restrictedRequest = (roles: string[]) => async (req: any, res: any,
   try {
     const authHeader = req.get('Authorization');
     if (!authHeader) return res.status(401).send('Unauthorized');
-    const authToken = authHeader?.split(' ')[1];
+    const authToken = authHeader.split(' ')[1];
 
     const decodedToken = await auth.verifyIdToken(authToken);
     const uid = decodedToken.uid;
