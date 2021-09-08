@@ -15,7 +15,9 @@ async function start() {
     }
     updateConfig('projectId',projectId)
     const settings = {
-        rowyRunBuildStatus: "BUILDING"
+        rowyRunBuildStatus: "BUILDING",
+        rowyRunUrl: process.env.SERVICE_URL
+
     }
     await db.doc("_rowy_/settings").set(settings, { merge: true })
     await createRowyApp(projectId)
