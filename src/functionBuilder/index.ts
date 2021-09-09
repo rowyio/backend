@@ -1,7 +1,6 @@
 import { asyncExecute } from "./compiler/terminal";
 import { createStreamLogger } from "./utils";
 import generateConfig from "./compiler";
-import { auth } from "../firebaseConfig";
 import { commandErrorHandler } from "./utils";
 import firebase from "firebase-admin";
 
@@ -33,9 +32,9 @@ export const functionBuilder =  async (req: any, res: any) => {
   }
   await streamLogger.info("generateConfig success");
   
-  const projectId =// process.env.DEV?
-  require("../../firebase-adminsdk.json").project_id
-  //:require("../../rowyConfig.json").projectId 
+  const projectId =process.env.DEV?
+   require("../../firebase-adminsdk.json").project_id
+  :require("../../rowyConfig.json").projectId 
   console.log(`deploying to ${projectId}`);
   await asyncExecute(
     `cd build/functionBuilder/functions; \

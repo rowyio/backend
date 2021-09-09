@@ -14,7 +14,7 @@ import {
 import { getTriggerType, changedDocPath } from "./utils";
 import propagate from "./propagates";
 import initialize from "./initialize";
-export const FT = {
+export const R = {
   [functionName]: functions.firestore
     .document(triggerPath)
     .onWrite(async (change, context) => {
