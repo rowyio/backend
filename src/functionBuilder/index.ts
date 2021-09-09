@@ -8,7 +8,7 @@ import firebase from "firebase-admin";
 
 export const functionBuilder =  async (req: any, res: any) => {
   const user: firebase.auth.UserRecord = res.locals.user;
-  const configPath = req?.body?.configPath;
+  const configPath = req.body.configPath;
   console.log("configPath:", configPath);
 
   if (!configPath) {
@@ -33,17 +33,19 @@ export const functionBuilder =  async (req: any, res: any) => {
   }
   await streamLogger.info("generateConfig success");
   
-  const projectId = process.env.DEV?require("../../firebase-adminsdk.json").project_id:require("../../rowyConfig.json").projectId 
+  const projectId =// process.env.DEV?
+  require("../../firebase-adminsdk.json").project_id
+  //:require("../../rowyConfig.json").projectId 
   console.log(`deploying to ${projectId}`);
   await asyncExecute(
-    `cd build/functions; \
+    `cd build/functionBuilder/functions; \
      yarn install`,
     commandErrorHandler({ user }, streamLogger)
   );
 
   await asyncExecute(
-    `cd build/functions; \
-       yarn deployFT \
+    `cd build/functionBuilder/functions; \
+       yarn deploy \
         --project ${projectId} \
         --only functions`,
     commandErrorHandler({ user }, streamLogger)

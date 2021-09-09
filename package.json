@@ -6,6 +6,7 @@
   "main": "build/index.js",
   "scripts": {
     "start": "node build/index.js",
+    "postbuild": "cpy --cwd=src --parents '**/*.json' ../dist/",
     "dev": "nodemon",
     "test": "mocha test/index.test.js --exit",
     "system-test": "NAME=Cloud mocha test/system.test.js --timeout=180000",

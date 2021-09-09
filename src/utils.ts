@@ -1,7 +1,7 @@
 import  https from 'https'
 import { auth } from './firebaseConfig';
 
-export const restrictedRequest = (roles: string[]) => async (req: any, res: any, next: Function) => {
+export const hasRoles = (roles: string[]) => async (req: any, res: any, next: Function) => {
   try {
     const authHeader = req.get('Authorization');
     if (!authHeader) return res.status(401).send('Unauthorized');

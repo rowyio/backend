@@ -1,10 +1,13 @@
 // --resolveJsonModule 
 import express from 'express'
 import { db } from './firebaseConfig'
-import { restrictedRequest } from './utils'
+import { hasRoles } from './utils'
 import { deleteUser, impersonateUser, inviteUser, setUserRoles } from './userManagement';
+import { listCollections } from './firestore';
+import { actionScript } from './actionScripts';
 import { functionBuilder } from './functionBuilder';
-import cors from'cors'       
+
+import cors from'cors'
 const app = express();
 // json is the default content-type for POST requests
 app.use(express.json());
@@ -14,42 +17,34 @@ app.get('/version', (req, res) => {
   res.send({ version: '1.0.0' });
 });
 
-app.get('/listCollections', restrictedRequest(["ADMIN"]),async (req, res) => {
-  const { path } = req.query;
-  if (path) {
-    db.doc(decodeURIComponent(path as string)).listCollections().then(collections => {
-      
-      res.send(collections.map(collection => collection.id));
-    });
-  } else {
-    db.listCollections().then(collections => {
-      res.send(collections.map(collection => collection.id));
-    });
-  }
-});
+app.get('/listCollections', hasRoles(["ADMIN"]),
+listCollections);
+
 
 
 // USER MANAGEMENT
 
 // invite users
-app.post('/inviteUser',restrictedRequest(["ADMIN"]),
+app.post('/inviteUser',hasRoles(["ADMIN"]),
 inviteUser)
 
 //set user roles
-app.post('/setUserRoles',restrictedRequest(["ADMIN"]),
+app.post('/setUserRoles',hasRoles(["ADMIN"]),
 setUserRoles)
 
 // delete user
-app.delete('/deleteUser',restrictedRequest(["ADMIN"]),
+app.delete('/deleteUser',hasRoles(["ADMIN"]),
 deleteUser)
 
 // impersonate user
-app.get('/impersonateUser/:email',restrictedRequest(["ADMIN"]),
+app.get('/impersonateUser/:email',hasRoles(["ADMIN"]),
 impersonateUser)
 
 
+// action script
+app.post('/actionScript',hasRoles(["ADMIN"]),actionScript)
 // Function Builder
-app.post('/createFunction',restrictedRequest(["ADMIN"]),
+app.post('/buildFunction',hasRoles(["ADMIN"]),
 functionBuilder)
 
 //SECRET MANAGEMENT

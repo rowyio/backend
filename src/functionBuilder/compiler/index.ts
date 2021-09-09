@@ -46,7 +46,7 @@ export default async function generateConfig(
     );
 
     const isFunctionConfigValid = await asyncExecute(
-      "cd build/functions/src; tsc functionConfig.ts",
+      "cd build/functionBuilder/functions/src; tsc functionConfig.ts",
       commandErrorHandler(
         {
           user,
