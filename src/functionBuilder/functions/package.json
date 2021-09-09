@@ -13,7 +13,7 @@
   "engines": {
     "node": "16"
   },
-  "main": "lib/index.js",
+  "main": "src/index.js",
   "dependencies": {
     "@google-cloud/secret-manager": "^3.2.3",
     "firebase-admin": "^9.4.2",
