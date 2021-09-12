@@ -150,6 +150,9 @@ export const generateConfigOfTriggerPath = async (triggerPath:string,streamLogge
   }
   const configs =  (await Promise.all(tableSchemaPaths.map(path=> getConfigFromTableSchema(path,streamLogger)))).filter(i=>i !== false)
   const combinedConfig = combineConfigs(configs)
+  await db.doc(`_rowy_/settings/functions/${functionNamer(triggerPath)}`).set({
+    config:combinedConfig,
+    updatedAt: new Date(),
+  },{merge:true});
   return generateFile(triggerPath,combinedConfig)
-  
 }
