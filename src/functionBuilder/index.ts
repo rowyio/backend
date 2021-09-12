@@ -1,6 +1,7 @@
 import { asyncExecute } from "./compiler/terminal";
 import { createStreamLogger } from "./utils";
 import generateConfig from "./compiler";
+import {functionNamer} from './compiler/loader'
 import { commandErrorHandler } from "./utils";
 import firebase from "firebase-admin";
 
@@ -8,8 +9,8 @@ export const functionBuilder =  async (req: any, res: any) => {
   const user: firebase.auth.UserRecord = res.locals.user;;
   const {triggerPath} = req.body;
   if (!triggerPath) res.send({ success: false, message: "no triggerPath" });
-  const configPath = `_rowy_/settings/functions/${triggerPath}`
-  const streamLogger = await createStreamLogger(configPath);
+  const functionConfigPath = `_rowy_/settings/functions/${functionNamer(triggerPath)}`
+  const streamLogger = await createStreamLogger(functionConfigPath);
   await streamLogger.info("streamLogger created");
 
   const success = await generateConfig(triggerPath, user, streamLogger);

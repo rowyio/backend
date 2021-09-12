@@ -80,7 +80,7 @@ const getTriggerType = (triggerPath: string): TriggerPathType => {
 }
 
 
-const functionNamer = (triggerPath: string) => {
+export const functionNamer = (triggerPath: string) => {
     const triggerPathParts = triggerPath.split("/")
     switch (getTriggerType(triggerPath)) {
         case "collection":
