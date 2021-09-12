@@ -2,7 +2,7 @@ import * as functions from "firebase-functions";
 import utilFns, { hasRequiredFields, getTriggerType } from "../utils";
 import { db, auth, storage } from "../firebaseConfig";
 
-const spark = (sparkConfig, fieldTypes) => async (
+const extension = (extensionConfig, fieldTypes) => async (
   change: functions.Change<functions.firestore.DocumentSnapshot>,
   context: functions.EventContext
 ) => {
@@ -12,26 +12,26 @@ const spark = (sparkConfig, fieldTypes) => async (
   const triggerType = getTriggerType(change);
   try {
     const {
-      label,
+      name,
       type,
       triggers,
-      shouldRun,
+      conditions,
       requiredFields,
-      sparkBody,
-    } = sparkConfig;
-    const sparkContext = {
+      extensionBody,
+    } = extensionConfig;
+    const extensionContext = {
       row: triggerType === "delete" ? beforeData : afterData,
       ref,
       db,
       auth,
       change,
       triggerType,
-      sparkConfig,
+      extensionConfig,
       utilFns,
       fieldTypes,
       storage,
     };
-    if (!triggers.includes(triggerType)) return false; //check if trigger type is included in the spark
+    if (!triggers.includes(triggerType)) return false; //check if trigger type is included in the extension
     if (
       triggerType !== "delete" &&
       requiredFields &&
@@ -39,39 +39,30 @@ const spark = (sparkConfig, fieldTypes) => async (
       !hasRequiredFields(requiredFields, afterData)
     ) {
       console.log("requiredFields are ", requiredFields, "type is", type);
-      return false; // check if it hase required fields for the spark to run
+      return false; // check if it hase required fields for the extension to run
     }
-    const dontRun = shouldRun
-      ? !(typeof shouldRun === "function"
-          ? await shouldRun(sparkContext)
-          : shouldRun)
+    const dontRun = conditions
+      ? !(typeof conditions === "function"
+          ? await conditions(extensionContext)
+          : conditions)
       : false; //
 
-    console.log(label, "type is ", type, "dontRun value is", dontRun);
+    console.log(`name: "${name}", type: "${type}", dontRun: ${dontRun}`);
 
     if (dontRun) return false;
-    const sparkData = await Object.keys(sparkBody).reduce(
-      async (acc, key) => ({
-        [key]:
-          typeof sparkBody[key] === "function"
-            ? await sparkBody[key](sparkContext)
-            : sparkBody[key],
-        ...(await acc),
-      }),
-      {}
-    );
-    console.log(JSON.stringify(sparkData));
-    const sparkFn = require(`./${type}`).default;
-    await sparkFn(sparkData, sparkContext);
+    const extensionData = await extensionBody(extensionContext);
+    console.log(`extensionData: ${JSON.stringify(extensionData)}`);
+    const extensionFn = require(`./${type}`).default;
+    await extensionFn(extensionData, extensionContext);
     return true;
   } catch (err) {
-    const { label, type } = sparkConfig;
+    const { name, type } = extensionConfig;
     console.log(
-      `error in ${label} spark of type ${type}, on ${context.eventType} in Doc ${context.resource.name}`
+      `error in ${name} extension of type ${type}, on ${context.eventType} in Doc ${context.resource.name}`
     );
     console.error(err);
     return Promise.reject(err);
   }
 };
 
-export default spark;
+export default extension;

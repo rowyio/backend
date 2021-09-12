@@ -1,18 +1,17 @@
-import { addPackages, addSparkLib, asyncExecute } from "./terminal";
+import { addPackages, addExtensionLib, asyncExecute } from "./terminal";
 const fs = require("fs");
-import { generateConfigFromTableSchema } from "./loader";
+import { generateConfigOfTriggerPath } from "./loader";
 import { commandErrorHandler } from "../utils";
 const path = require("path");
 import admin from "firebase-admin";
 
 export default async function generateConfig(
-  schemaPath: string,
+  triggerPath: string,
   user: admin.auth.UserRecord,
-  streamLogger:any
+  streamLogger
 ) {
-  return await generateConfigFromTableSchema(
-    schemaPath,
-    user,
+  return await generateConfigOfTriggerPath(
+    triggerPath,
     streamLogger
   ).then(async (success) => {
     if (!success) {
@@ -46,7 +45,7 @@ export default async function generateConfig(
     );
 
     const isFunctionConfigValid = await asyncExecute(
-      "cd build/functionBuilder/functions/src; tsc functionConfig.ts",
+      "cd build/functions/src; tsc functionConfig.ts",
       commandErrorHandler(
         {
           user,
@@ -63,14 +62,14 @@ export default async function generateConfig(
       return false;
     }
 
-    const { sparksConfig } = require("../functions/src/functionConfig.js");
-    const requiredSparks = sparksConfig.map((s: any) => s.type);
+    const { extensionsConfig } = require("../functions/src/functionConfig.js");
+    const requiredExtensions = extensionsConfig.map((s: any) => s.type);
     await streamLogger.info(
-      `requiredSparks: ${JSON.stringify(requiredSparks)}`
+      `requiredExtensions: ${JSON.stringify(requiredExtensions)}`
     );
 
-    for (const lib of requiredSparks) {
-      const success = await addSparkLib(lib, user, streamLogger);
+    for (const lib of requiredExtensions) {
+      const success = await addExtensionLib(lib, user, streamLogger);
       if (!success) {
         return false;
       }

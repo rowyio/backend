@@ -18,18 +18,17 @@ const significantDifference = (fieldsToSync, change) => {
   }, false);
 };
 
-const docSync = async (data, sparkContext) => {
+const docSync = async (data, extensionContext) => {
   const { row, targetPath, fieldsToSync } = data;
-  const { triggerType, change } = sparkContext;
+  const { triggerType, change } = extensionContext;
   const record = rowReducer(fieldsToSync, row);
   const { db } = require("../firebaseConfig");
 
   switch (triggerType) {
     case "delete":
       try {
-      await db.doc(targetPath).delete();
-      }
-      catch (error) {
+        await db.doc(targetPath).delete();
+      } catch (error) {
         console.log(error);
       }
       break;

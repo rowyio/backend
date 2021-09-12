@@ -1,13 +1,13 @@
 import * as functions from "firebase-functions";
 import derivative from "./derivatives";
-import spark from "./sparks";
+import extension from "./extensions";
 import {
   functionName,
   triggerPath,
   derivativesConfig,
   documentSelectConfig,
-  sparksConfig,
-  initializeConfig,
+  extensionsConfig,
+  defaultValueConfig,
   fieldTypes,
 } from "./functionConfig";
 
@@ -20,17 +20,21 @@ export const R = {
     .onWrite(async (change, context) => {
       const triggerType = getTriggerType(change);
       let promises: Promise<any>[] = [];
-      const sparkPromises = sparksConfig
-        .filter((sparkConfig) => sparkConfig.triggers.includes(triggerType))
-        .map((sparkConfig) => spark(sparkConfig, fieldTypes)(change, context));
+      const extensionPromises = extensionsConfig
+        .filter((extensionConfig) =>
+          extensionConfig.triggers.includes(triggerType)
+        )
+        .map((extensionConfig) =>
+          extension(extensionConfig, fieldTypes)(change, context)
+        );
       console.log(
         `#${
-          sparkPromises.length
-        } sparks will be evaluated on ${triggerType} of ${changedDocPath(
+          extensionPromises.length
+        } extensions will be evaluated on ${triggerType} of ${changedDocPath(
           change
         )}`
       );
-      promises = sparkPromises;
+      promises = extensionPromises;
       const propagatePromise = propagate(
         change,
         documentSelectConfig,
@@ -47,7 +51,7 @@ export const R = {
           }
         } else if (triggerType === "create") {
           try {
-            const initialData = await initialize(initializeConfig)(
+            const initialData = await initialize(defaultValueConfig)(
               change.after
             );
             const derivativeData = await derivative(derivativesConfig)(change);
@@ -64,5 +68,5 @@ export const R = {
       } catch (err) {
         console.log(`caught error: ${err}`);
       }
-    }),
+    })
 };

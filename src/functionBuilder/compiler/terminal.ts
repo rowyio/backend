@@ -22,14 +22,14 @@ export const asyncExecute = async (command: string, callback: any) =>
 export const addPackages = async (
   packages: { name: string; version?: string }[],
   user: admin.auth.UserRecord,
-  streamLogger:any
+  streamLogger
 ) => {
   const packagesString = packages.reduce((acc, currPackage) => {
     return `${acc} ${currPackage.name}@${currPackage.version ?? "latest"}`;
   }, "");
   if (packagesString.trim().length !== 0) {
     const success = await asyncExecute(
-      `cd build/functionBuilder/functions;yarn add ${packagesString}`,
+      `cd build/functions;yarn add ${packagesString}`,
       commandErrorHandler(
         {
           user,
@@ -43,13 +43,13 @@ export const addPackages = async (
   return true;
 };
 
-export const addSparkLib = async (
+export const addExtensionLib = async (
   name: string,
   user: admin.auth.UserRecord,
-  streamLogger:any
+  streamLogger
 ) => {
   try {
-    const { dependencies } = require(`../sparksLib/${name}`);
+    const { dependencies } = require(`../extensionsLib/${name}`);
     const packages = Object.keys(dependencies).map((key) => ({
       name: key,
       version: dependencies[key],
@@ -70,11 +70,11 @@ export const addSparkLib = async (
   }
 
   const success = await asyncExecute(
-    `cp build/sparksLib/${name}.ts build/functionBuilder/functions/src/sparks/${name}.ts`,
+    `cp build/extensionsLib/${name}.ts build/functions/src/extensions/${name}.ts`,
     commandErrorHandler(
       {
         user,
-        description: "Error copying sparksLib",
+        description: "Error copying extensionsLib",
       },
       streamLogger
     )

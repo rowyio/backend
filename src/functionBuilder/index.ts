@@ -4,23 +4,15 @@ import generateConfig from "./compiler";
 import { commandErrorHandler } from "./utils";
 import firebase from "firebase-admin";
 
-
 export const functionBuilder =  async (req: any, res: any) => {
-  const user: firebase.auth.UserRecord = res.locals.user;
-  const configPath = req.body.configPath;
-  console.log("configPath:", configPath);
-
-  if (!configPath) {
-    res.send({
-      success: false,
-      reason: "invalid configPath",
-    });
-  }
-
+  const user: firebase.auth.UserRecord = res.locals.user;;
+  const {triggerPath} = req.body;
+  if (!triggerPath) res.send({ success: false, message: "no triggerPath" });
+  const configPath = `_rowy_/settings/functions/${triggerPath}`
   const streamLogger = await createStreamLogger(configPath);
   await streamLogger.info("streamLogger created");
 
-  const success = await generateConfig(configPath, user, streamLogger);
+  const success = await generateConfig(triggerPath, user, streamLogger);
   if (!success) {
     await streamLogger.error("generateConfig failed to complete");
     await streamLogger.fail();

@@ -1,5 +1,5 @@
 export const dependencies = {
-  meilisearch: "^0.18.1",
+  algoliasearch: "^4.8.3",
 };
 
 const get = (obj, path, defaultValue = undefined) => {
@@ -75,57 +75,35 @@ const significantDifference = (fieldsToSync, change) => {
   }, false);
 };
 
-const meiliIndex = async (data, sparkContext) => {
+const algoliaIndex = async (data, extensionContext) => {
   const { row, objectID, index, fieldsToSync } = data;
 
-  const { triggerType, change } = sparkContext;
+  const { triggerType, change } = extensionContext;
   const record = rowReducer(fieldsToSync, row);
-  const { MeiliSearch } = require("meilisearch");
+  const algoliasearch = require("algoliasearch");
   const { getSecret } = require("../utils");
-  const meiliConfig = await getSecret("meilisearch");
-  console.log(`meilisearch host : ${meiliConfig.host}, index: ${index}`);
-  const client = new MeiliSearch(meiliConfig);
-  const _index = client.index(index);
+  const { appId, adminKey } = await getSecret("algolia");
+  console.log(`algolia app id : ${appId}`);
+  const client = algoliasearch(appId, adminKey);
+  const _index = client.initIndex(index); // initialize algolia index
 
-  let res;
   switch (triggerType) {
     case "delete":
-      console.log("Deleting...");
-      res = await _index.deleteDocument(objectID);
+      await _index.deleteObject(objectID);
       break;
     case "update":
       if (
         significantDifference([...fieldsToSync, "_ft_forcedUpdateAt"], change)
       ) {
-        console.log("Updating...");
-        res = await _index.updateDocuments([
-          {
-            id: objectID,
-            ...record,
-          },
-        ]);
+        _index.saveObject({ ...record, objectID });
       }
       break;
     case "create":
-      console.log("Creating...");
-      res = await _index.addDocuments([
-        {
-          id: objectID,
-          ...record,
-        },
-      ]);
+      await _index.saveObject({ ...record, objectID });
       break;
     default:
-      console.log("No match.");
       break;
   }
-  console.log("Checking status...");
-  if (res?.updateId) {
-    console.log("Querying status...");
-    const status = await client.index(index).getUpdateStatus(res.updateId);
-    console.log("Status:", status);
-  }
-
   return true;
 };
-export default meiliIndex;
+export default algoliaIndex;
