@@ -7,7 +7,7 @@
     "serve": "npm run build && firebase serve --only functions",
     "shell": "npm run build && firebase functions:shell",
     "start": "npm run shell",
-    "deployFT": "echo 'n\n' | firebase deploy --interactive",
+    "deploy": "echo 'n\n' | firebase deploy --interactive",
     "logs": "firebase functions:log"
   },
   "engines": {
