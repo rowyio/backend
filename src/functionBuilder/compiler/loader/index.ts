@@ -115,7 +115,7 @@ const generateFile = async (triggerPath,configData) => {
 
 
   const {derivativeColumns, defaultValueColumns, documentSelectColumns, fieldTypes, extensions} = configData;
-  const exports: any = {
+  const data = {
     fieldTypes:JSON.stringify(fieldTypes),
     triggerPath: JSON.stringify(triggerPath),
     functionName: JSON.stringify(functionNamer(triggerPath)),
@@ -124,8 +124,8 @@ const generateFile = async (triggerPath,configData) => {
     documentSelectConfig: serialiseDocumentSelectColumns(documentSelectColumns),
     extensionsConfig:serialiseExtension(extensions),
   };
-  const fileData = Object.keys(exports).reduce((acc, currKey) => {
-    return `${acc}\nexport const ${currKey} = ${exports[currKey]}`;
+  const fileData = Object.keys(data).reduce((acc, currKey) => {
+    return `${acc}\nexport const ${currKey} = ${data[currKey]}`;
   }, ``);
   const path = require("path");
   fs.writeFileSync(
@@ -150,8 +150,6 @@ export const generateConfigOfTriggerPath = async (triggerPath:string,streamLogge
   }
   const configs =  (await Promise.all(tableSchemaPaths.map(path=> getConfigFromTableSchema(path,streamLogger)))).filter(i=>i !== false)
   const combinedConfig = combineConfigs(configs)
-    generateFile(triggerPath,combinedConfig)
-    return true
+  return generateFile(triggerPath,combinedConfig)
+  
 }
-
-//generateConfig("demoAllFieldTypes/{docId}")

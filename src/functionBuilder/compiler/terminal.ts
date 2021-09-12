@@ -29,7 +29,7 @@ export const addPackages = async (
   }, "");
   if (packagesString.trim().length !== 0) {
     const success = await asyncExecute(
-      `cd build/functions;yarn add ${packagesString}`,
+      `cd build/functionBuilder/functions;yarn add ${packagesString}`,
       commandErrorHandler(
         {
           user,
@@ -70,7 +70,7 @@ export const addExtensionLib = async (
   }
 
   const success = await asyncExecute(
-    `cp build/extensionsLib/${name}.ts build/functions/src/extensions/${name}.ts`,
+    `cp build/functionBuilder/extensionsLib/${name}.ts build/functionBuilder/functions/src/extensions/${name}.ts`,
     commandErrorHandler(
       {
         user,

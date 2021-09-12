@@ -13,14 +13,7 @@ export default async function generateConfig(
   return await generateConfigOfTriggerPath(
     triggerPath,
     streamLogger
-  ).then(async (success) => {
-    if (!success) {
-      await streamLogger.info(
-        `generateConfigFromTableSchema failed to complete`
-      );
-      return false;
-    }
-
+  ).then(async () => {
     await streamLogger.info(`generateConfigFromTableSchema done`);
     const configFile = fs.readFileSync(
       path.resolve(__dirname, "../functions/src/functionConfig.ts"),
@@ -45,7 +38,7 @@ export default async function generateConfig(
     );
 
     const isFunctionConfigValid = await asyncExecute(
-      "cd build/functions/src; tsc functionConfig.ts",
+      "cd build/functionBuilder/functions/src; tsc functionConfig.ts",
       commandErrorHandler(
         {
           user,
