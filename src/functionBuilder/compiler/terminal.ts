@@ -70,7 +70,8 @@ export const addExtensionLib = async (
   }
 
   const success = await asyncExecute(
-    `cp build/functionBuilder/extensionsLib/${name}.ts build/functionBuilder/functions/src/extensions/${name}.ts`,
+    `cp build/functionBuilder/extensionsLib/${name}.js build/functionBuilder/functions/src/extensions/${name}.js
+    cp build/functionBuilder/extensionsLib/${name}.js.map build/functionBuilder/functions/src/extensions/${name}.js.map`,
     commandErrorHandler(
       {
         user,
