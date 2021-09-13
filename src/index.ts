@@ -6,16 +6,20 @@ import { deleteUser, impersonateUser, inviteUser, setUserRoles } from './userMan
 import { listCollections } from './firestore';
 import { actionScript } from './actionScripts';
 import { functionBuilder } from './functionBuilder';
-
+import {version,serviceAccountAccess} from './setup'
 import cors from'cors'
 const app = express();
 // json is the default content-type for POST requests
 app.use(express.json());
 app.use(cors())
+
+
+// rowy Run Setup
 // get version
-app.get('/version', (req, res) => {
-  res.send({ version: '1.0.0' });
-});
+app.get('/version',version);
+
+app.get('serviceAccountAccess',serviceAccountAccess)
+
 
 app.get('/listCollections', hasRoles(["ADMIN"]),
 listCollections);
@@ -40,7 +44,7 @@ deleteUser)
 app.get('/impersonateUser/:email',hasRoles(["ADMIN"]),
 impersonateUser)
 
-
+app.get('rowyRunUrl/serviceAccountAccess',)
 // action script
 app.post('/actionScript',hasRoles(["ADMIN"]),actionScript)
 // Function Builder
