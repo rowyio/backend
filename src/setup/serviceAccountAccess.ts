@@ -11,8 +11,7 @@ export const serviceAccountAccess =  async (req:Request, res:Response) => {
         method: 'get',
         headers:  {'Metadata-Flavor': 'Google'}
         });
-        const body = await response.json();
-        return res.send({body,response})
+        return res.send({response})
     } catch (error) {
         return res.send({error})
     }
