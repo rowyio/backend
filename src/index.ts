@@ -6,7 +6,7 @@ import { deleteUser, impersonateUser, inviteUser, setUserRoles } from './userMan
 import { listCollections } from './firestore';
 import { actionScript } from './actionScripts';
 import { functionBuilder } from './functionBuilder';
-import {version,serviceAccountAccess} from './setup'
+import {version,region,serviceAccountAccess} from './setup'
 import cors from'cors'
 const app = express();
 // json is the default content-type for POST requests
@@ -17,9 +17,11 @@ app.use(cors())
 // rowy Run Setup
 // get version
 app.get('/version',version);
+app.get('/region',region);
 
 app.get('/serviceAccountAccess',serviceAccountAccess)
 
+//app.post('/setOwnerRoles')
 
 app.get('/listCollections', hasRoles(["ADMIN"]),
 listCollections);

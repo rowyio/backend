@@ -13,6 +13,7 @@ async function start() {
     updateConfig('projectId',projectId)
     const settings = {
         rowyRunBuildStatus: "BUILDING",
+        rowyRunRegion: process.env.GOOGLE_CLOUD_REGION,
     }
     await db.doc("_rowy_/settings").set(settings, { merge: true })
     await createRowyApp(projectId)
