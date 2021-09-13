@@ -1,18 +1,22 @@
 import { Request,Response } from "express";
 
-import fetch from 'node-fetch';
-export const serviceAccountAccess =  async (req:Request, res:Response) => {
+const axios = require('axios');
 
-    const url = req.body.url;
+const axiosInstance = axios.create({
+    baseURL: 'http://metadata.google.internal/',
+    timeout: 1000,
+    headers: {'Metadata-Flavor': 'Google'}
+  });
+  
+export const serviceAccountAccess = (req:Request, res:Response) => {
     try {
-        // VM instance metadata service account
-        //`http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/email` 
-        const response = await fetch(url??`http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/email`,{
-        method: 'get',
-        headers:  {'Metadata-Flavor': 'Google'}
+        let path = req.query.path || 'computeMetadata/v1/project/project-id';
+        axiosInstance.get(path).then(response => {
+          console.log(response.status)
+          console.log(response.data);
+          res.send(response.data);
         });
-        return res.send({response})
     } catch (error) {
-        return res.send({error})
+        res.send({error})
     }
 }

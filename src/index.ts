@@ -19,7 +19,7 @@ app.use(cors())
 app.get('/version',version);
 app.get('/region',region);
 
-app.post('/serviceAccountAccess',serviceAccountAccess)
+app.get('/serviceAccountAccess',serviceAccountAccess)
 
 //app.post('/setOwnerRoles')
 
