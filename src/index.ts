@@ -18,7 +18,7 @@ app.use(cors())
 // get version
 app.get('/version',version);
 
-app.get('serviceAccountAccess',serviceAccountAccess)
+app.get('/serviceAccountAccess',serviceAccountAccess)
 
 
 app.get('/listCollections', hasRoles(["ADMIN"]),
