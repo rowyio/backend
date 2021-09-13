@@ -1,13 +1,15 @@
-import {google} from 'googleapis'
-
 import { Request,Response } from "express";
+
+import fetch from 'node-fetch';
 export const serviceAccountAccess =  async (req:Request, res:Response) => {
+
+    const url = req.body.url;
     try {
-        const auth = new google.auth.GoogleAuth({
-            scopes: ['https://www.googleapis.com/auth/cloud-platform'],
-        });
-        const scopes = auth.defaultScopes
-        return res.send({scopes})
+        // VM instance metadata service account
+        //`http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/email`
+        const response = await fetch(url??`http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/email`);
+        const body = await response.json();
+        return res.send({body})
     } catch (error) {
         return res.send({error})
     }

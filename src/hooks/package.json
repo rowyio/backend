@@ -1,7 +1,0 @@
-{
-  "dependencies": {
-    "firebase-admin": "^9.11.0",
-    "firebase-tools":"9.17.0",
-    "googleapis": "^84.0.0"
-  }
-}

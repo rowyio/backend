@@ -19,7 +19,7 @@ app.use(cors())
 app.get('/version',version);
 app.get('/region',region);
 
-app.get('/serviceAccountAccess',serviceAccountAccess)
+app.post('/serviceAccountAccess',serviceAccountAccess)
 
 //app.post('/setOwnerRoles')
 
@@ -46,7 +46,6 @@ deleteUser)
 app.get('/impersonateUser/:email',hasRoles(["ADMIN"]),
 impersonateUser)
 
-app.get('rowyRunUrl/serviceAccountAccess',)
 // action script
 app.post('/actionScript',hasRoles(["ADMIN"]),actionScript)
 // Function Builder
