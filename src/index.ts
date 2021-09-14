@@ -5,6 +5,7 @@ import { getFirestoreRules, listCollections } from './firestore';
 import { actionScript } from './actionScripts';
 import { functionBuilder } from './functionBuilder';
 import {version,region,serviceAccountAccess, setOwnerRoles} from './setup'
+import {checkIfFTMigrationRequired,migrateFT2Rowy} from './setup/ft2rowy'
 import cors from'cors'
 const app = express();
 // json is the default content-type for POST requests
@@ -33,7 +34,10 @@ app.get('/listCollections', requireAuth,hasAnyRole(["ADMIN"]),functionWrapper(li
 
 app.get('/firestoreRules',requireAuth,hasAnyRole(["ADMIN","OWNER"]),functionWrapper(getFirestoreRules))
 
+//FT Migration
 
+app.get("/checkFT2Rowy",requireAuth,hasAnyRole(["ADMIN","OWNER"]),checkIfFTMigrationRequired)
+app.get("/migrateFT2Rowy",requireAuth,hasAnyRole(["ADMIN","OWNER"]),functionWrapper(migrateFT2Rowy))
 
 // USER MANAGEMENT
 
@@ -50,7 +54,7 @@ app.delete('/deleteUser',requireAuth,hasAnyRole(["ADMIN"]),deleteUser)
 app.get('/impersonateUser/:email',requireAuth,hasAnyRole(["ADMIN"]),impersonateUser)
 
 // action script
-app.post('/actionScript',requireAuth,hasAnyRole(["ADMIN"]),actionScript)
+app.post('/actionScript',requireAuth,actionScript)
 // Function Builder
 app.post('/buildFunction',requireAuth,hasAnyRole(["ADMIN"]),functionBuilder)
 
