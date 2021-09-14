@@ -18,6 +18,4 @@ export const setOwnerRoles =  async (req:Request, res:Response) => {
     } catch (error) {
         return res.send({ success: false, error: error });
     }
-    
-
 }

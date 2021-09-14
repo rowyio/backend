@@ -27,7 +27,7 @@ export const hasAnyRole = (roles: string[]) => async (req: any, res: any, next: 
     if (authorized) {
       next();
     } else {
-      res.status(401).send({ error: 'Unauthorized' });
+      res.status(401).send({ error: 'Unauthorized', message: 'User does not have any of the required roles', roles });
     }
   } catch (err) {
     res.status(401).send({ error:err });

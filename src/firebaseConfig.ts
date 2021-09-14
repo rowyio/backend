@@ -9,7 +9,5 @@ admin.initializeApp({
 });
 const db = admin.firestore();
 const auth = admin.auth();
-
 db.settings({ timestampsInSnapshots: true, ignoreUndefinedProperties: true });
-
 export { db, admin, auth };

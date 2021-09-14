@@ -1,21 +1,37 @@
 import { Request,Response } from "express";
-
-const axios = require('axios');
-
-const axiosInstance = axios.create({
-    baseURL: 'http://metadata.google.internal/',
-    timeout: 1000,
-    headers: {'Metadata-Flavor': 'Google'}
-  });
+import {db,auth,admin} from '../firebaseConfig'
   
-export const serviceAccountAccess = (req:Request, res:Response) => {
+export const serviceAccountAccess = async(req:Request, res:Response) => {
     try {
-        let path = req.query.path || 'computeMetadata/v1/instance/service-accounts/default/scopes';
-        axiosInstance.get(path).then(response => {
-          console.log(response.status)
-          console.log(response.data);
-          res.send(response.data);
-        });
+        const missingAccess:any = {
+
+        }
+       // test access to firestore
+        try {
+            db.listCollections()
+        } catch (error) {
+            missingAccess.firestore = error
+        }
+        // test access to auth
+        try {
+         const testUser =  await auth.createUser({
+                email:"test@test.rowy"
+           })
+            await auth.deleteUser(testUser.uid)
+        }
+        catch (error) {
+            missingAccess.auth = error
+        }
+
+        // test access to firestore rules
+        try {
+            const securityRules = admin.securityRules()
+            securityRules.getFirestoreRuleset()
+        } catch (error) {
+            missingAccess.firestoreRules = error
+        }
+
+        res.send(missingAccess)
     } catch (error) {
         res.send({error})
     }
