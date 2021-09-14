@@ -10,12 +10,12 @@ const axiosInstance = axios.create({
   
 export const serviceAccountAccess = (req:Request, res:Response) => {
     try {
-        // let path = req.query.path || 'computeMetadata/v1/project/project-id';
-        // axiosInstance.get(path).then(response => {
-        //   console.log(response.status)
-        //   console.log(response.data);
-        //   res.send(response.data);
-        // });
+        let path = req.query.path || 'computeMetadata/v1/instance/service-accounts/default/scopes';
+        axiosInstance.get(path).then(response => {
+          console.log(response.status)
+          console.log(response.data);
+          res.send(response.data);
+        });
     } catch (error) {
         res.send({error})
     }
