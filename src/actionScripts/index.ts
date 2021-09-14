@@ -34,10 +34,7 @@ const serverTimestamp = admin.firestore.FieldValue.serverTimestamp;
 
 export const actionScript = async (req:Request,res:Response) => {
     try {
-    //   if (!context) {
-    //     throw Error(`You are unauthenticated`);
-    //   }
-    
+      const user = res.locals.user;
       const { ref, actionParams, column, action, schemaDocPath }:ActionData = req.body;
       const _schemaDocPath =
         schemaDocPath ?? generateSchemaDocPath(ref.tablePath);
@@ -58,9 +55,11 @@ export const actionScript = async (req:Request,res:Response) => {
       if (!requiredRoles || requiredRoles.length === 0) {
         throw Error(`You need to specify at least one role to run this script`);
       }
-    //   if (!utilFns.hasAnyRole(requiredRoles, context)) {
-    //     throw Error(`You don't have the required roles permissions`);
-    //   }
+      console.log(`requiredRoles: ${requiredRoles}`);
+      console.log(`userRoles: ${user.customClaims.roles}`)
+      if (!requiredRoles.some((role) => user.customClaims.roles.includes(role))) {
+        throw Error(`You don't have the required roles permissions`);
+      }
 
       const missingRequiredFields = requiredFields
         ? requiredFields.reduce(missingFieldsReducer(row), [])
@@ -81,40 +80,38 @@ export const actionScript = async (req:Request,res:Response) => {
       )({ row, db, auth,// utilFns,
          ref, actionParams, //context 
         });
-      if (result.success) {
+      if (result.success || result.status) {
         const cellValue = {
-          redo: config["redo.enabled"],
+          redo: result.success ? config["redo.enabled"]:true,
           status: result.status,
           completedAt: serverTimestamp(),
-         // ranBy: context.auth!.token.email,
+          ranBy: user.email,
           undo: config["undo.enabled"],
         };
         try {
-        //   const userDoc = await db
-        //     .collection("_FT_USERS")
-        //     .doc(context.auth!.uid)
-        //     .get();
-          //const user = userDoc?.get("user");
+          const userDoc = await db
+            .collection("/_rowy_/userManagement/users")
+            .doc(user.uid)
+            .get();
+          const userData = userDoc?.get("user");
           await db.doc(ref.path).update({
             [column.key]: cellValue,
-           // _ft_updatedBy: user
-            //   ? {
-            //       ...user,
-            //       ...context.auth!,
-            //       timestamp: new Date(),
-            //     }
-            //   : null,
+            updatedBy: userData
+              ? {
+                  ...userData,
+                  ...user,
+                  timestamp: new Date(),
+                }
+              : null,
           });
         } catch (error) {
-          // handle failed edit log update
+          // if actionScript code deletes the row, it will throw an error when updating the cell
         }
 
         return res.send({
-          ...result,
-          cellValue,
+          ...result,cellValue
         });
-      } else
-        return res.send({
+      }else return res.send({
           success: false,
           message: result.message,
         });
