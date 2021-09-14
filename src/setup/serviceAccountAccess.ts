@@ -3,14 +3,20 @@ import {db,auth,admin} from '../firebaseConfig'
   
 export const serviceAccountAccess = async(req:Request, res:Response) => {
     try {
-        const missingAccess:any = {
+        const access:any = {
 
         }
        // test access to firestore
         try {
-            db.listCollections()
+            await db.listCollections()
+            const testDocRef = db.doc("_rowy_/testingAccess")
+            await testDocRef.set({success:true})
+            const testDoc = await testDocRef.get()
+            if(!testDoc.exists) access.firestore = false
+            await testDocRef.delete
+            access.firestore = true
         } catch (error) {
-            missingAccess.firestore = error
+            access.firestore = false
         }
         // test access to auth
         try {
@@ -18,20 +24,22 @@ export const serviceAccountAccess = async(req:Request, res:Response) => {
                 email:"test@test.rowy"
            })
             await auth.deleteUser(testUser.uid)
+            access.auth = true
         }
         catch (error) {
-            missingAccess.auth = error
+            access.auth = false
         }
 
         // test access to firestore rules
         try {
             const securityRules = admin.securityRules()
-            securityRules.getFirestoreRuleset()
+            await securityRules.getFirestoreRuleset()
+            access.firestoreRules = true
         } catch (error) {
-            missingAccess.firestoreRules = error
+            access.firestoreRules = false
         }
 
-        res.send(missingAccess)
+        res.send(access)
     } catch (error) {
         res.send({error})
     }
