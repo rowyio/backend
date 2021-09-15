@@ -2,7 +2,7 @@ import * as _ from "lodash";
 import { db, auth } from "../firebaseConfig";
 import * as admin from "firebase-admin";
 import { Request, Response } from "express";
-
+//TODO
 //import utilFns from "./utils";
 type ActionData = {
   ref: {
@@ -23,12 +23,6 @@ const missingFieldsReducer = (data: any) => (acc: string[], curr: string) => {
   } else return acc;
 };
 
-const generateSchemaDocPath = (tablePath) => {
-  const pathComponents = tablePath.split("/");
-  return `_FIRETABLE_/settings/${
-    pathComponents[1] === "table" ? "schema" : "groupSchema"
-  }/${pathComponents[2]}`;
-};
 const serverTimestamp = admin.firestore.FieldValue.serverTimestamp;
 
 export const actionScript = async (req: Request, res: Response) => {
@@ -36,10 +30,8 @@ export const actionScript = async (req: Request, res: Response) => {
     const user = res.locals.user;
     const { ref, actionParams, column, action, schemaDocPath }: ActionData =
       req.body;
-    const _schemaDocPath =
-      schemaDocPath ?? generateSchemaDocPath(ref.tablePath);
     const [schemaDoc, rowQuery] = await Promise.all([
-      db.doc(_schemaDocPath).get(),
+      db.doc(schemaDocPath).get(),
       db.doc(ref.path).get(),
     ]);
     const row = rowQuery.data();
