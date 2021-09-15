@@ -13,10 +13,13 @@ async function start() {
   console.log(logo);
   console.log(
     `
-    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    +  Continue the setup process by going to the link bellow     +
-    +  ${rowyAppURL}
-    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++`
+  🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩
+  🟩  🎊  Successfully deployed rowy run 🎊🎉                                              🟩
+  🟩                                                                                      🟩
+  🟩  Continue the setup process by going to the link bellow:                             🟩
+  🟩  ${rowyAppURL} 🟩
+  🟩                                                                                      🟩
+  🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩`
   );
 }
 
