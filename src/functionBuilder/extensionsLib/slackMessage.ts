@@ -13,54 +13,58 @@ const initSlack = async () => {
   return new WebClient(token);
 };
 
-const messageByChannel = (slackClient) => async ({
-  text,
-  channel,
-  blocks,
-  attachments,
-}: {
-  channel: string;
-  text: string;
-  blocks: any[];
-  attachments: any[];
-}) =>
-  await slackClient.chat.postMessage({
+const messageByChannel =
+  (slackClient) =>
+  async ({
     text,
     channel,
     blocks,
     attachments,
-  });
+  }: {
+    channel: string;
+    text: string;
+    blocks: any[];
+    attachments: any[];
+  }) =>
+    await slackClient.chat.postMessage({
+      text,
+      channel,
+      blocks,
+      attachments,
+    });
 
-const messageByEmail = (slackClient) => async ({
-  email,
-  text,
-  blocks,
-  attachments,
-}: {
-  email: string;
-  text: string;
-  blocks: any[];
-  attachments: any[];
-}) => {
-  try {
-    const user = await slackClient.users.lookupByEmail({ email });
-    if (user.ok) {
-      const channel = user.user.id;
-      return await messageByChannel(slackClient)({
-        text,
-        blocks,
-        attachments,
-        channel,
-      });
-    } else {
+const messageByEmail =
+  (slackClient) =>
+  async ({
+    email,
+    text,
+    blocks,
+    attachments,
+  }: {
+    email: string;
+    text: string;
+    blocks: any[];
+    attachments: any[];
+  }) => {
+    try {
+      const user = await slackClient.users.lookupByEmail({ email });
+      if (user.ok) {
+        const channel = user.user.id;
+        return await messageByChannel(slackClient)({
+          text,
+          blocks,
+          attachments,
+          channel,
+        });
+      } else {
+        return await false;
+      }
+    } catch (error) {
+      console.log(`${error} maybe${email} is not on slack`);
+      console.log(`${error}`);
       return await false;
     }
-  } catch (error) {
-    console.log(`${error} maybe${email} is not on slack`);
-    console.log(`${error}`);
-    return await false;
-  }
-};
+  };
 
 const slackMessage = async (data) => {
   const slackClient = await initSlack();

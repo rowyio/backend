@@ -55,8 +55,6 @@ export const actionScript = async (req: Request, res: Response) => {
     if (!requiredRoles || requiredRoles.length === 0) {
       throw Error(`You need to specify at least one role to run this script`);
     }
-    console.log(`requiredRoles: ${requiredRoles}`);
-    console.log(`userRoles: ${user.customClaims.roles}`);
     if (!requiredRoles.some((role) => user.customClaims.roles.includes(role))) {
       throw Error(`You don't have the required roles permissions`);
     }

@@ -12,7 +12,7 @@ function rowyUser(user: admin.auth.UserRecord) {
   };
 }
 
-async function insertErrorToStreamer(errorRecord: any, streamLogger:any) {
+async function insertErrorToStreamer(errorRecord: any, streamLogger: any) {
   let errorString = "";
   for (const key of [
     "command",
@@ -37,9 +37,9 @@ function commandErrorHandler(
     functionConfigTs?: string;
     sparksConfig?: string;
   },
-  streamLogger:any
+  streamLogger: any
 ) {
-  return async function (error:any, stdout:any, stderr:any) {
+  return async function (error: any, stdout: any, stderr: any) {
     await streamLogger.info(stdout);
 
     if (!error) {
@@ -70,7 +70,7 @@ async function logErrorToDB(
     user: admin.auth.UserRecord;
     sparksConfig?: string;
   },
-  streamLogger:any
+  streamLogger: any
 ) {
   console.error(data.errorDescription);
 
@@ -91,7 +91,7 @@ async function logErrorToDB(
 function parseSparksConfig(
   sparks: string | undefined,
   user: admin.auth.UserRecord,
-  streamLogger:any
+  streamLogger: any
 ) {
   if (sparks) {
     try {
@@ -99,7 +99,7 @@ function parseSparksConfig(
       return sparks
         .replace(/^(\s*)sparks.config\(/, "")
         .replace(/\);?\s*$/, "");
-    } catch (error:any) {
+    } catch (error: any) {
       logErrorToDB(
         {
           errorDescription: "Sparks is not wrapped with sparks.config",
@@ -159,7 +159,7 @@ async function createStreamLogger(tableConfigPath: string) {
       const logsDoc = await logRef.get();
       const errorLog = logsDoc
         .get("fullLog")
-        .filter((log:any) => log.level === "error");
+        .filter((log: any) => log.level === "error");
       if (errorLog.length !== 0) {
         console.log("streamLogger marked as FAIL");
         await logRef.update({

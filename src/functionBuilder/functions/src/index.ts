@@ -68,5 +68,5 @@ export const R = {
       } catch (err) {
         console.log(`caught error: ${err}`);
       }
-    })
+    }),
 };
