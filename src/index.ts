@@ -23,7 +23,7 @@ const functionWrapper = (fn) => async (req, res) => {
 };
 // rowy Run Setup
 // get version
-app.get('/version',version);
+app.get('/version',functionWrapper(version));
 app.get('/region',functionWrapper(region));
 
 app.get('/serviceAccountAccess',serviceAccountAccess)
