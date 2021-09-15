@@ -1,11 +1,11 @@
-import {IExtension} from './types'
-/* Convert extension objects into a single readable string */ 
+import { IExtension } from "./types";
+/* Convert extension objects into a single readable string */
 export const serialiseExtension = (extensions: IExtension[]): string =>
-    "[" +
-    extensions
-      .filter((extension) => extension.active)
-      .map(
-        (extension) => `{
+  "[" +
+  extensions
+    .filter((extension) => extension.active)
+    .map(
+      (extension) => `{
           name: "${extension.name}",
           type: "${extension.type}",
           triggers: [${extension.triggers
@@ -21,13 +21,13 @@ export const serialiseExtension = (extensions: IExtension[]): string =>
             .replace(/^.*:\s*\w*Body\s*=/, "")
             .replace(/\s*;\s*$/, "")}
         }`
-      )
-      .join(",") +
-    "]";
+    )
+    .join(",") +
+  "]";
 
 /* convert derivative columns into a readable string */
-export const serialiseDerivativeColumns = (derivativeColumns: any[]): string => `[${derivativeColumns.reduce(
-  (acc, currColumn: any) => {
+export const serialiseDerivativeColumns = (derivativeColumns: any[]): string =>
+  `[${derivativeColumns.reduce((acc, currColumn: any) => {
     if (
       !currColumn.config.listenerFields ||
       currColumn.config.listenerFields.length === 0
@@ -46,12 +46,12 @@ export const serialiseDerivativeColumns = (derivativeColumns: any[]): string => 
     }},\nlistenerFields:[${currColumn.config.listenerFields
       .map((fieldKey: string) => `"${fieldKey}"`)
       .join(",\n")}]},\n`;
-  },
-  ""
-)}]`
+  }, "")}]`;
 
-export const serialiseDefaultValueColumns = (defaultValueColumns: any[]): string => `[${defaultValueColumns.reduce(
-  (acc, currColumn: any) => {
+export const serialiseDefaultValueColumns = (
+  defaultValueColumns: any[]
+): string =>
+  `[${defaultValueColumns.reduce((acc, currColumn: any) => {
     if (currColumn.config.defaultValue.type === "static") {
       return `${acc}{\nfieldName:'${currColumn.key}',
     type:"${currColumn.config.defaultValue.type}",
@@ -71,17 +71,15 @@ export const serialiseDefaultValueColumns = (defaultValueColumns: any[]): string
     type:"${currColumn.config.defaultValue.type}"
    },\n`;
     }
-  },
-  ""
-)}]`
+  }, "")}]`;
 
-export const serialiseDocumentSelectColumns = (documentSelectColumns: any[]): string =>  `[${documentSelectColumns.reduce(
-  (acc, currColumn: any) => {
+export const serialiseDocumentSelectColumns = (
+  documentSelectColumns: any[]
+): string =>
+  `[${documentSelectColumns.reduce((acc, currColumn: any) => {
     return `${acc}{\nfieldName:'${
       currColumn.key
     }',\ntrackedFields:[${currColumn.config.trackedFields
       .map((fieldKey: string) => `"${fieldKey}"`)
       .join(",\n")}]},\n`;
-  },
-  ""
-)}]`;
+  }, "")}]`;

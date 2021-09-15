@@ -1,15 +1,17 @@
 import { asyncExecute } from "./compiler/terminal";
 import { createStreamLogger } from "./utils";
 import generateConfig from "./compiler";
-import {functionNamer} from './compiler/loader'
+import { functionNamer } from "./compiler/loader";
 import { commandErrorHandler } from "./utils";
 import firebase from "firebase-admin";
 
-export const functionBuilder =  async (req: any, res: any) => {
-  const user: firebase.auth.UserRecord = res.locals.user;;
-  const {triggerPath} = req.body;
+export const functionBuilder = async (req: any, res: any) => {
+  const user: firebase.auth.UserRecord = res.locals.user;
+  const { triggerPath } = req.body;
   if (!triggerPath) res.send({ success: false, message: "no triggerPath" });
-  const functionConfigPath = `_rowy_/settings/functions/${functionNamer(triggerPath)}`
+  const functionConfigPath = `_rowy_/settings/functions/${functionNamer(
+    triggerPath
+  )}`;
   const streamLogger = await createStreamLogger(functionConfigPath);
   await streamLogger.info("streamLogger created");
 
@@ -24,10 +26,10 @@ export const functionBuilder =  async (req: any, res: any) => {
     return;
   }
   await streamLogger.info("generateConfig success");
-  
-  const projectId =process.env.DEV?
-   require("../../firebase-adminsdk.json").project_id
-  :require("../../rowyConfig.json").projectId 
+
+  const projectId = process.env.DEV
+    ? require("../../firebase-adminsdk.json").project_id
+    : require("../../rowyConfig.json").projectId;
   console.log(`deploying to ${projectId}`);
   await asyncExecute(
     `cd build/functionBuilder/functions; \
@@ -47,4 +49,4 @@ export const functionBuilder =  async (req: any, res: any) => {
   res.send({
     success: true,
   });
-}
+};
