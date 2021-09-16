@@ -9,7 +9,13 @@ import {
 import { getFirestoreRules, listCollections } from "./firestore";
 import { actionScript } from "./actionScripts";
 import { functionBuilder } from "./functionBuilder";
-import { version, region, serviceAccountAccess, setOwnerRoles } from "./setup";
+import {
+  version,
+  region,
+  serviceAccountAccess,
+  setOwnerRoles,
+  getOwner,
+} from "./setup";
 import { checkIfFTMigrationRequired, migrateFT2Rowy } from "./setup/ft2rowy";
 import cors from "cors";
 const app = express();
@@ -31,6 +37,7 @@ app.get("/version", functionWrapper(version));
 app.get("/region", functionWrapper(region));
 
 app.get("/serviceAccountAccess", serviceAccountAccess);
+app.get("/projectOwner", functionWrapper(getOwner));
 
 app.get("/setOwnerRoles", requireAuth, setOwnerRoles);
 

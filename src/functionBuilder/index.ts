@@ -7,15 +7,15 @@ import firebase from "firebase-admin";
 
 export const functionBuilder = async (req: any, res: any) => {
   const user: firebase.auth.UserRecord = res.locals.user;
-  const { triggerPath } = req.body;
-  if (!triggerPath) res.send({ success: false, message: "no triggerPath" });
+  const { pathname } = req.body;
+  if (pathname) res.send({ success: false, message: `missing pathname` });
   const functionConfigPath = `_rowy_/settings/functions/${functionNamer(
-    triggerPath
+    pathname
   )}`;
   const streamLogger = await createStreamLogger(functionConfigPath);
   await streamLogger.info("streamLogger created");
 
-  const success = await generateConfig(triggerPath, user, streamLogger);
+  const success = await generateConfig(pathname, user, streamLogger);
   if (!success) {
     await streamLogger.error("generateConfig failed to complete");
     await streamLogger.fail();
