@@ -18,6 +18,7 @@ import {
 } from "./setup";
 import { checkIfFTMigrationRequired, migrateFT2Rowy } from "./setup/ft2rowy";
 import cors from "cors";
+import { metadataService } from "./metadataService";
 const app = express();
 // json is the default content-type for POST requests
 app.use(express.json());
@@ -88,12 +89,13 @@ app.get(
   hasAnyRole(["ADMIN"]),
   impersonateUser
 );
-
 // action script
 app.post("/actionScript", requireAuth, actionScript);
 // Function Builder
 app.post("/buildFunction", requireAuth, hasAnyRole(["ADMIN"]), functionBuilder);
 
+//metadata service
+app.get("/metadata", requireAuth, hasAnyRole(["ADMIN"]), metadataService);
 //SECRET MANAGEMENT
 
 // get secret
