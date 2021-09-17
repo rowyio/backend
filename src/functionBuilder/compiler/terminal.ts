@@ -1,6 +1,6 @@
 import * as child from "child_process";
 import admin from "firebase-admin";
-import { commandErrorHandler, logErrorToDB } from "../utils";
+import { commandErrorHandler, logErrorToDB } from "../logger";
 
 function execute(command: string, callback: any) {
   console.log(command);

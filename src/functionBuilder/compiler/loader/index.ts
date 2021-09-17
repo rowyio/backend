@@ -9,7 +9,7 @@ import { TriggerPathType, TableConfig } from "./types";
 const fs = require("fs");
 const beautify = require("js-beautify").js;
 
-const getConfigFromTableSchema = async (
+export const getConfigFromTableSchema = async (
   schemaDocPath: string,
   streamLogger
 ) => {
@@ -94,17 +94,7 @@ const getTriggerType = (triggerPath: string): TriggerPathType => {
   else return "collectionGroup";
 };
 
-export const functionNamer = (triggerPath: string) => {
-  const triggerPathParts = triggerPath.split("/");
-  switch (getTriggerType(triggerPath)) {
-    case "collection":
-      return triggerPathParts.filter((part) => !part.startsWith("{")).join("-");
-    default:
-      return "";
-  }
-};
-
-const combineConfigs = (configs: any[]) =>
+export const combineConfigs = (configs: any[]) =>
   configs.reduce(
     (acc, cur: TableConfig) => {
       const {
@@ -139,18 +129,20 @@ const combineConfigs = (configs: any[]) =>
     }
   );
 
-const generateFile = async (triggerPath, configData) => {
+export const generateFile = async (configData) => {
   const {
     derivativeColumns,
     defaultValueColumns,
     documentSelectColumns,
     fieldTypes,
     extensions,
+    triggerPath,
+    functionName,
   } = configData;
   const data = {
     fieldTypes: JSON.stringify(fieldTypes),
     triggerPath: JSON.stringify(triggerPath),
-    functionName: JSON.stringify(functionNamer(triggerPath)),
+    functionName: JSON.stringify(functionName),
     derivativesConfig: serialiseDerivativeColumns(derivativeColumns),
     defaultValueConfig: serialiseDefaultValueColumns(defaultValueColumns),
     documentSelectConfig: serialiseDocumentSelectColumns(documentSelectColumns),
@@ -164,44 +156,4 @@ const generateFile = async (triggerPath, configData) => {
     path.resolve(__dirname, "../../functions/src/functionConfig.ts"),
     beautify(fileData, { indent_size: 2 })
   );
-};
-
-export const generateConfigOfTriggerPath = async (
-  triggerPath: string,
-  streamLogger
-) => {
-  const triggerPathType = getTriggerType(triggerPath);
-  let tableSchemaPaths = [];
-  const settingsDoc = await db.doc("_rowy_/settings").get();
-  const { tables } = settingsDoc.data();
-  switch (triggerPathType) {
-    case "collection":
-      const collection = triggerPath.split("/")[0];
-      const collectionTables = tables.filter(
-        (table: any) => table.collection === collection
-      );
-      tableSchemaPaths = collectionTables.map(
-        (table: any) =>
-          `/_rowy_/settings/schema/${table.id ?? table.collection}`
-      );
-      break;
-    default:
-      break;
-  }
-  const configs = (
-    await Promise.all(
-      tableSchemaPaths.map((path) =>
-        getConfigFromTableSchema(path, streamLogger)
-      )
-    )
-  ).filter((i) => i !== false);
-  const combinedConfig = combineConfigs(configs);
-  await db.doc(`_rowy_/settings/functions/${functionNamer(triggerPath)}`).set(
-    {
-      config: combinedConfig,
-      updatedAt: new Date(),
-    },
-    { merge: true }
-  );
-  return generateFile(triggerPath, combinedConfig);
 };

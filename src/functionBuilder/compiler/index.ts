@@ -1,59 +1,110 @@
 import { addPackages, addExtensionLib, asyncExecute } from "./terminal";
 const fs = require("fs");
-import { generateConfigOfTriggerPath } from "./loader";
-import { commandErrorHandler } from "../utils";
+import {
+  getConfigFromTableSchema,
+  generateFile,
+  combineConfigs,
+} from "./loader";
+import { commandErrorHandler } from "../logger";
+import { db } from "../../firebaseConfig";
 const path = require("path");
 import admin from "firebase-admin";
 
 export default async function generateConfig(
-  triggerPath: string,
+  data: {
+    functionConfigPath: string;
+    collectionType: string;
+    collectionPath: string;
+    functionName: string;
+    triggerPath: string;
+    tables: any[];
+  },
   user: admin.auth.UserRecord,
   streamLogger
 ) {
-  return await generateConfigOfTriggerPath(triggerPath, streamLogger).then(
-    async () => {
-      await streamLogger.info(`generateConfigFromTableSchema done`);
-      const configFile = fs.readFileSync(
-        path.resolve(__dirname, "../functions/src/functionConfig.ts"),
-        "utf-8"
+  const {
+    functionConfigPath,
+    collectionType,
+    collectionPath,
+    triggerPath,
+    functionName,
+    tables,
+  } = data;
+  let tableSchemaPaths = [];
+  switch (collectionType) {
+    case "collection":
+      const collectionTables = tables.filter(
+        (table: any) => table.collection === collectionPath
       );
-      await streamLogger.info(`configFile: ${JSON.stringify(configFile)}`);
-      const requiredDependencies = configFile.match(
-        /(?<=(require\(("|'))).*?(?=("|')\))/g
+      tableSchemaPaths = collectionTables.map(
+        (table: any) =>
+          `/_rowy_/settings/schema/${table.id ?? table.collection}`
       );
-      if (requiredDependencies) {
-        const packgesAdded = await addPackages(
-          requiredDependencies.map((p: any) => ({ name: p })),
-          user,
-          streamLogger
-        );
-        if (!packgesAdded) {
-          return false;
-        }
-      }
-      await streamLogger.info(
-        `requiredDependencies: ${JSON.stringify(requiredDependencies)}`
-      );
+      break;
+    default:
+      break;
+  }
+  const configs = (
+    await Promise.all(
+      tableSchemaPaths.map((path) =>
+        getConfigFromTableSchema(path, streamLogger)
+      )
+    )
+  ).filter((i) => i !== false);
+  const combinedConfig = combineConfigs(configs);
 
-      const isFunctionConfigValid = await asyncExecute(
-        "cd build/functionBuilder/functions/src; tsc functionConfig.ts",
-        commandErrorHandler(
-          {
-            user,
-            functionConfigTs: configFile,
-            description: `Invalid compiled functionConfig.ts`,
-          },
-          streamLogger
-        )
-      );
-      await streamLogger.info(
-        `isFunctionConfigValid: ${JSON.stringify(isFunctionConfigValid)}`
-      );
-      if (!isFunctionConfigValid) {
-        return false;
-      }
+  await db.doc(functionConfigPath).set(
+    {
+      config: combinedConfig,
+      updatedAt: new Date(),
+    },
+    { merge: true }
+  );
+  console.log(combinedConfig);
+  generateFile({ ...combinedConfig, functionName, triggerPath });
 
-      const {
+  await streamLogger.info(`generateConfigFromTableSchema done`);
+  const configFile = fs.readFileSync(
+    path.resolve(__dirname, "../functions/src/functionConfig.ts"),
+    "utf-8"
+  );
+  await streamLogger.info(`configFile: ${JSON.stringify(configFile)}`);
+  const requiredDependencies = configFile.match(
+    /(?<=(require\(("|'))).*?(?=("|')\))/g
+  );
+  if (requiredDependencies) {
+    const packgesAdded = await addPackages(
+      requiredDependencies.map((p: any) => ({ name: p })),
+      user,
+      streamLogger
+    );
+    if (!packgesAdded) {
+      return false;
+    }
+  }
+  await streamLogger.info(
+    `requiredDependencies: ${JSON.stringify(requiredDependencies)}`
+  );
+
+  const isFunctionConfigValid = await asyncExecute(
+    "cd build/functionBuilder/functions/src; tsc functionConfig.ts",
+    commandErrorHandler(
+      {
+        user,
+        functionConfigTs: configFile,
+        description: `Invalid compiled functionConfig.ts`,
+      },
+      streamLogger
+    )
+  );
+  await streamLogger.info(
+    `isFunctionConfigValid: ${JSON.stringify(isFunctionConfigValid)}`
+  );
+  if (!isFunctionConfigValid) {
+    return false;
+  }
+
+  /*    const {
         extensionsConfig,
       } = require("../functions/src/functionConfig.js");
       const requiredExtensions = extensionsConfig.map((s: any) => s.type);
@@ -67,7 +118,8 @@ export default async function generateConfig(
           return false;
         }
       }
-      return true;
-    }
-  );
+      */
+  return true;
+  // }
+  //);
 }
