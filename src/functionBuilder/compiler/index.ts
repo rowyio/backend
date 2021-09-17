@@ -104,22 +104,18 @@ export default async function generateConfig(
     return false;
   }
 
-  /*    const {
-        extensionsConfig,
-      } = require("../functions/src/functionConfig.js");
-      const requiredExtensions = extensionsConfig.map((s: any) => s.type);
-      await streamLogger.info(
-        `requiredExtensions: ${JSON.stringify(requiredExtensions)}`
-      );
+  const { extensionsConfig } = require("../functions/src/functionConfig.js");
+  const requiredExtensions = extensionsConfig.map((s: any) => s.type);
+  await streamLogger.info(
+    `requiredExtensions: ${JSON.stringify(requiredExtensions)}`
+  );
 
-      for (const lib of requiredExtensions) {
-        const success = await addExtensionLib(lib, user, streamLogger);
-        if (!success) {
-          return false;
-        }
-      }
-      */
+  for (const lib of requiredExtensions) {
+    const success = await addExtensionLib(lib, user, streamLogger);
+    if (!success) {
+      return false;
+    }
+  }
+
   return true;
-  // }
-  //);
 }
