@@ -15,3 +15,11 @@ export const metadataService = (req: Request, res: Response) => {
     res.send({ data: response.data });
   });
 };
+
+export const getProjectId = () =>
+  axiosInstance.get("computeMetadata/v1/project/project-id");
+export const generateServiceAccessToken = (audience) =>
+  axiosInstance.get(
+    `computeMetadata/v1/instance/service-accounts/default/identity?audience=${audience}`
+  );
+//https://www.googleapis.com/oauth2/v1/certs
