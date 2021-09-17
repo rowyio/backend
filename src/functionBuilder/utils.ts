@@ -61,7 +61,7 @@ export const getTriggerPath = (
   let triggerPath = "";
   switch (collectionType) {
     case "collection":
-      return `"${collectionPath}/{docId}"`;
+      return `${collectionPath}/{docId}`;
     case "groupCollection":
       triggerPath = "";
       for (let i = 1; i <= depth; i++) {
