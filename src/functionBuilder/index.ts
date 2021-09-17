@@ -23,8 +23,12 @@ export const functionBuilder = async (req: any, res: any) => {
   const collectionType = getCollectionType(pathname);
   const collectionPath = getCollectionPath(collectionType, pathname, tables);
   const table = tables.find((t: any) => t.path === tablePath);
-  const triggerPath = getTriggerPath(collectionType, pathname, table?.depth);
-  console.log(collectionType, collectionPath, triggerPath);
+  const triggerPath = getTriggerPath(
+    collectionType,
+    collectionPath,
+    table?.depth
+  );
+  console.log({ collectionType, collectionPath, triggerPath });
   const functionName = getFunctionName(collectionType, collectionPath);
   const functionConfigPath = `_rowy_/settings/functions/${functionName}`;
   console.log({ functionConfigPath });
