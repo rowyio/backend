@@ -6,7 +6,11 @@ import {
   inviteUser,
   setUserRoles,
 } from "./userManagement";
-import { getFirestoreRules, listCollections } from "./firestore";
+import {
+  getFirestoreRules,
+  listCollections,
+  setFirestoreRules,
+} from "./firestore";
 import { actionScript } from "./actionScripts";
 import { functionBuilder } from "./functionBuilder";
 import {
@@ -54,6 +58,13 @@ app.get(
   requireAuth,
   hasAnyRole(["ADMIN", "OWNER"]),
   functionWrapper(getFirestoreRules)
+);
+
+app.post(
+  "/setFirestoreRules",
+  requireAuth,
+  hasAnyRole(["ADMIN", "OWNER"]),
+  functionWrapper(setFirestoreRules)
 );
 
 //FT Migration

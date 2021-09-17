@@ -1,1 +1,0 @@
-// set default firestore rules
