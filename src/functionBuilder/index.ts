@@ -27,7 +27,10 @@ export const functionBuilder = async (req: any, res: any) => {
   console.log(collectionType, collectionPath, triggerPath);
   const functionName = getFunctionName(collectionType, collectionPath);
   const functionConfigPath = `_rowy_/settings/functions/${functionName}`;
-
+  console.log({ functionConfigPath });
+  const projectId = process.env.DEV
+    ? require("../../firebase-adminsdk.json").project_id
+    : await getProjectId();
   const streamLogger = await createStreamLogger(functionConfigPath);
   await streamLogger.info("streamLogger created");
 
@@ -54,9 +57,6 @@ export const functionBuilder = async (req: any, res: any) => {
   }
   await streamLogger.info("generateConfig success");
 
-  const projectId = process.env.DEV
-    ? require("../../firebase-adminsdk.json").project_id
-    : await getProjectId();
   console.log(`deploying to ${projectId}`);
   await asyncExecute(
     `cd build/functionBuilder/functions; \
