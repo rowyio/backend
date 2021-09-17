@@ -13,7 +13,8 @@ import { db } from "../firebaseConfig";
 
 export const functionBuilder = async (req: any, res: any) => {
   const user: firebase.auth.UserRecord = res.locals.user;
-  const { pathname, tablePath } = req.body;
+  const { tablePath } = req.body;
+  const pathname = req.body.pathname.substring(1);
   if (!pathname || !tablePath)
     res.send({ success: false, message: `missing pathname or tablePath` });
   // get settings Document
