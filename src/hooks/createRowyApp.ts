@@ -1,6 +1,7 @@
 const client = require("firebase-tools");
 import { httpsPost } from "../utils";
 import { updateConfig } from "./utils";
+import { getNumericProjectId } from "../metadataService";
 const getRowyApp = (projectId: string) =>
   new Promise((resolve) => {
     const getSDKConfig = (appId: string) =>
@@ -33,7 +34,7 @@ const getRowyApp = (projectId: string) =>
       });
   });
 
-const registerRowyApp = async (firebaseConfig: any) =>
+const registerRowyApp = async (firebaseConfig: any, numericProjectId: number) =>
   httpsPost({
     hostname: "us-central1-rowy-service.cloudfunctions.net",
     path: `/addProject`,
@@ -43,14 +44,18 @@ const registerRowyApp = async (firebaseConfig: any) =>
     },
     body: {
       firebaseConfig,
+      numericProjectId,
     },
   });
 
 export const createRowyApp = async (projectId: string) => {
   try {
     const firebaseConfig = await getRowyApp(projectId);
+    const numericProjectId = await getNumericProjectId();
+    console.log(`numericProjectId: ${numericProjectId}`);
     const { secret, success, message }: any = await registerRowyApp(
-      firebaseConfig
+      firebaseConfig,
+      numericProjectId
     );
     if (!success) throw new Error(message);
     updateConfig("secret", secret);

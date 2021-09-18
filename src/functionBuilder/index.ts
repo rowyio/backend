@@ -20,7 +20,6 @@ export const functionBuilder = async (req: any, res: any) => {
   // get settings Document
   const settings = await db.doc(`_rowy_/settings`).get();
   const tables = settings.get("tables");
-
   const collectionType = getCollectionType(pathname);
   const collectionPath = getCollectionPath(collectionType, pathname, tables);
   const table = tables.find((t: any) => t.path === tablePath);
@@ -29,13 +28,19 @@ export const functionBuilder = async (req: any, res: any) => {
     collectionPath,
     table?.depth
   );
-  console.log({ collectionType, collectionPath, triggerPath });
   const functionName = getFunctionName(collectionType, collectionPath);
   const functionConfigPath = `_rowy_/settings/functions/${functionName}`;
-  console.log({ functionConfigPath });
   const projectId = process.env.DEV
     ? require("../../firebase-adminsdk.json").project_id
     : await getProjectId();
+  console.log({
+    projectId,
+    collectionType,
+    collectionPath,
+    triggerPath,
+    functionName,
+    functionConfigPath,
+  });
   const streamLogger = await createStreamLogger(functionConfigPath);
   await streamLogger.info("streamLogger created");
 
