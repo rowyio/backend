@@ -1,9 +1,8 @@
-import { createRowyApp } from "./createRowyApp";
-import { getGCPEmail, updateConfig } from "./utils";
+import { updateConfig, getProjectId } from "./utils";
 import { db } from "../firebaseConfig";
-const projectId = process.env.GOOGLE_CLOUD_PROJECT;
 
 async function start() {
+  const projectId = getProjectId();
   if (!projectId) {
     throw new Error("GOOGLE_CLOUD_PROJECT env variable is not set");
   }
@@ -13,17 +12,6 @@ async function start() {
     rowyRunRegion: process.env.GOOGLE_CLOUD_REGION,
   };
   await db.doc("_rowy_/settings").set(settings, { merge: true });
-  await createRowyApp(projectId);
-  const gcpEmail = await getGCPEmail();
-  if (typeof gcpEmail !== "string") {
-    throw new Error("cloud shell ");
-  }
-  const userManagement = {
-    owner: {
-      email: gcpEmail,
-    },
-  };
-  await db.doc("_rowy_/userManagement").set(userManagement, { merge: true });
   const publicSettings = {
     signInOptions: ["google"],
   };

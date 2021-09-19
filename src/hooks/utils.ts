@@ -18,3 +18,5 @@ export const updateConfig = (key: string, value: any) => {
     JSON.stringify(rowyService, null, 2)
   );
 };
+
+export const getProjectId = () => process.env.GOOGLE_CLOUD_PROJECT;
