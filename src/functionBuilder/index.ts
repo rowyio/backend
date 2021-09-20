@@ -11,12 +11,14 @@ import firebase from "firebase-admin";
 import { getProjectId } from "../metadataService";
 import { db } from "../firebaseConfig";
 
-export const functionBuilder = async (req: any, res: any) => {
-  const user: firebase.auth.UserRecord = res.locals.user;
+export const functionBuilder = async (
+  req: any,
+  user: firebase.auth.UserRecord
+) => {
   const { tablePath } = req.body;
   const pathname = req.body.pathname.substring(1);
   if (!pathname || !tablePath)
-    res.send({ success: false, message: `missing pathname or tablePath` });
+    return { success: false, message: `missing pathname or tablePath` };
   // get settings Document
   const settings = await db.doc(`_rowy_/settings`).get();
   const tables = settings.get("tables");
@@ -41,6 +43,12 @@ export const functionBuilder = async (req: any, res: any) => {
     functionName,
     functionConfigPath,
   });
+  await Promise.all([
+    db.doc(functionConfigPath).set({ updatedAt: new Date() }, { merge: true }),
+    db.doc(tablePath).update({
+      functionConfigPath,
+    }),
+  ]);
   const streamLogger = await createStreamLogger(functionConfigPath);
   await streamLogger.info("streamLogger created");
 
@@ -59,11 +67,10 @@ export const functionBuilder = async (req: any, res: any) => {
   if (!success) {
     await streamLogger.error("generateConfig failed to complete");
     await streamLogger.fail();
-    res.send({
+    return {
       success: false,
       reason: `generateConfig failed to complete`,
-    });
-    return;
+    };
   }
   await streamLogger.info("generateConfig success");
 
@@ -83,7 +90,7 @@ export const functionBuilder = async (req: any, res: any) => {
   );
 
   await streamLogger.end();
-  res.send({
+  return {
     success: true,
-  });
+  };
 };

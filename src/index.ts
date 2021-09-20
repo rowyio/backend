@@ -22,6 +22,7 @@ import {
   getOwner,
 } from "./setup";
 import { checkIfFTMigrationRequired, migrateFT2Rowy } from "./setup/ft2rowy";
+import firebase from "firebase-admin";
 
 import { metadataService } from "./metadataService";
 const app = express();
@@ -36,7 +37,8 @@ app.use(
 );
 const functionWrapper = (fn) => async (req, res) => {
   try {
-    const data = await fn(req);
+    const user: firebase.auth.UserRecord = res.locals.user;
+    const data = await fn(req, user);
     res.status(200).send(data);
   } catch (error) {
     res.status(500).send(error);
@@ -109,7 +111,12 @@ app.get(
 // action script
 app.post("/actionScript", requireAuth, actionScript);
 // Function Builder
-app.post("/buildFunction", requireAuth, hasAnyRole(["ADMIN"]), functionBuilder);
+app.post(
+  "/buildFunction",
+  requireAuth,
+  hasAnyRole(["ADMIN"]),
+  functionWrapper(functionBuilder)
+);
 
 //metadata service
 app.get("/metadata", requireAuth, hasAnyRole(["ADMIN"]), metadataService);
