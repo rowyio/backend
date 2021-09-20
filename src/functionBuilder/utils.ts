@@ -48,9 +48,9 @@ export const getFunctionName = (
 ) => {
   switch (collectionType) {
     case "collection":
-      return `${collectionPath}`;
+      return `${collectionPath.replace(/-/g, "_")}`;
     case "collectionGroup":
-      return `CG_${collectionPath}_D${depth}`;
+      return `CG_${collectionPath.replace(/-/g, "_")}_D${depth}`;
     default:
       return "";
   }
