@@ -151,9 +151,13 @@ export const generateFile = async (configData) => {
   const fileData = Object.keys(data).reduce((acc, currKey) => {
     return `${acc}\nexport const ${currKey} = ${data[currKey]}`;
   }, ``);
+  const serializedConfig = beautify(fileData, { indent_size: 2 });
+  await db
+    .doc(`_rowy_/settings/functions/${functionName}`)
+    .update({ serializedConfig });
   const path = require("path");
   fs.writeFileSync(
     path.resolve(__dirname, "../../functions/src/functionConfig.ts"),
-    beautify(fileData, { indent_size: 2 })
+    serializedConfig
   );
 };

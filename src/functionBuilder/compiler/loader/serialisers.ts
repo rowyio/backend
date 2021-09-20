@@ -1,4 +1,11 @@
 import { IExtension } from "./types";
+
+const getRequiredPackages = (code: string) =>
+  code.match(/(?<=(require\(("|'))).*?(?=("|')\))/g).map((p) => {
+    const [name, version] = p.split("@");
+    return { name, version: version ?? "latest" };
+  });
+
 /* Convert extension objects into a single readable string */
 export const serialiseExtension = (extensions: IExtension[]): string =>
   "[" +
@@ -39,11 +46,14 @@ export const serialiseDerivativeColumns = (derivativeColumns: any[]): string =>
       throw new Error(
         `${currColumn.key} derivative has its own key as a listener field`
       );
-    return `${acc}{\nfieldName:'${
-      currColumn.key
-    }',evaluate:async ({row,ref,db,auth,storage,utilFns}) =>{${
-      currColumn.config.script
-    }},\nlistenerFields:[${currColumn.config.listenerFields
+    return `${acc}{\nfieldName:'${currColumn.key}'
+    ,requiredPackages:${JSON.stringify(
+      getRequiredPackages(currColumn.config.script)
+    )}
+    ,evaluate:async ({row,ref,db,auth,storage,utilFns}) =>{${currColumn.config.script.replace(
+      /(?:require\(.*)@\d+\.\d+\.\d+/g,
+      (capture) => capture.split("@")[0]
+    )}},\nlistenerFields:[${currColumn.config.listenerFields
       .map((fieldKey: string) => `"${fieldKey}"`)
       .join(",\n")}]},\n`;
   }, "")}]`;
@@ -64,7 +74,13 @@ export const serialiseDefaultValueColumns = (
     } else if (currColumn.config.defaultValue.type === "dynamic") {
       return `${acc}{\nfieldName:'${currColumn.key}',
     type:"${currColumn.config.defaultValue.type}",
-    script:async ({row,ref,db,auth,utilFns}) =>{${currColumn.config.defaultValue.script}},
+    requiredPackages:${JSON.stringify(
+      getRequiredPackages(currColumn.config.defaultValue.script)
+    )},
+    script:async ({row,ref,db,auth,utilFns}) =>{${currColumn.config.defaultValue.script.replace(
+      /(?:require\(.*)@\d+\.\d+\.\d+/g,
+      (capture) => capture.split("@")[0]
+    )}},
    },\n`;
     } else {
       return `${acc}{\nfieldName:'${currColumn.key}',
