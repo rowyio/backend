@@ -28,7 +28,11 @@ const app = express();
 // json is the default content-type for POST requests
 app.use(express.json());
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "*",
+  })
+);
 const functionWrapper = (fn) => async (req, res) => {
   try {
     const data = await fn(req);
