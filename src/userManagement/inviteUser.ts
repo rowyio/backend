@@ -40,11 +40,11 @@ export const inviteUser = async (req: Request, res: Response) => {
             email,
             uid: newUser.uid,
             roles,
-            inviter: {
-              email: inviterUser.email,
-              uid: inviterUser.uid,
-              displayName: inviterUser.displayName,
-            },
+          },
+          inviter: {
+            email: inviterUser.email,
+            uid: inviterUser.uid,
+            displayName: inviterUser.displayName,
           },
         },
       });
