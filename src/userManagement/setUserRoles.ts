@@ -7,7 +7,7 @@ export const setUserRoles = async (req: Request, res: Response) => {
     // check if user exists
     const userQuery = await db
       .collection(rowyUsers)
-      .where("email", "==", email)
+      .where("user.email", "==", email)
       .get();
     if (userQuery.docs.length === 0) {
       throw new Error("User does not exist");
