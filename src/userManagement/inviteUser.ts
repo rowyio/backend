@@ -1,10 +1,14 @@
 import { auth, db } from "../firebaseConfig";
+import * as admin from "firebase-admin";
 import { Request, Response } from "express";
 import { rowyUsers } from "../constants/Collections";
 import { httpsPost } from "../utils";
+import { getProjectId } from "../metadataService";
 export const inviteUser = async (req: Request, res: Response) => {
   try {
+    const inviterUser: admin.auth.UserRecord = res.locals.user;
     const { email, roles } = req.body;
+    const projectId = await getProjectId();
     // check if user exists
     const userQuery = await db
       .collection(rowyUsers)
@@ -30,9 +34,18 @@ export const inviteUser = async (req: Request, res: Response) => {
           "Content-Type": "application/json",
         },
         body: {
-          email,
-          uid: newUser.uid,
-          roles,
+          projectId,
+          secret: process.env.ROWY_SECRET,
+          newUser: {
+            email,
+            uid: newUser.uid,
+            roles,
+            inviter: {
+              email: inviterUser.email,
+              uid: inviterUser.uid,
+              displayName: inviterUser.displayName,
+            },
+          },
         },
       });
       console.log(resp);
