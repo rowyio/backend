@@ -30,7 +30,7 @@ async function start() {
   const firebaseConfig = await getRowyApp(projectId);
   const { success, message }: any = await registerRowyApp({
     firebaseConfig,
-    ROWY_SECRET: process.env.ROWY_SECRET,
+    secret: process.env.ROWY_SECRET,
   });
   if (!success) throw new Error(message);
   console.log(chalk.green("Successfully created rowy app"));

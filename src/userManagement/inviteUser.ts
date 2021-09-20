@@ -1,6 +1,7 @@
 import { auth, db } from "../firebaseConfig";
 import { Request, Response } from "express";
 import { rowyUsers } from "../constants/Collections";
+import { httpsPost } from "../utils";
 export const inviteUser = async (req: Request, res: Response) => {
   try {
     const { email, roles } = req.body;
@@ -17,11 +18,24 @@ export const inviteUser = async (req: Request, res: Response) => {
       // create user
       const newUser = await auth.createUser({
         email,
-        displayName: email,
-        disabled: false,
       });
       // roles
       auth.setCustomUserClaims(newUser.uid, { roles });
+      // send email
+      const resp = await httpsPost({
+        hostname: "rowy.run",
+        path: `/inviteUser`,
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: {
+          email,
+          uid: newUser.uid,
+          roles,
+        },
+      });
+      console.log(resp);
     }
     res.send({ success: true });
   } catch (error: any) {

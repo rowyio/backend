@@ -35,8 +35,8 @@ export const getRowyApp = (projectId: string) =>
 
 export const registerRowyApp = async (body) =>
   httpsPost({
-    hostname: "us-central1-rowy-service.cloudfunctions.net",
-    path: `/addProject`,
+    hostname: "rowy.run",
+    path: `/createProject`,
     method: "POST",
     headers: {
       "Content-Type": "application/json",
