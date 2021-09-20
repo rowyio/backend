@@ -1,8 +1,7 @@
 export const dependencies = {
   "@sendgrid/mail": "^7.4.2",
 };
-const sendgridEmail = async (data) => {
-  const { msg } = data;
+const sendgridEmail = async (msg) => {
   const sgMail = require("@sendgrid/mail");
   const utilFns = require("../utils");
   sgMail.setSubstitutionWrappers("{{", "}}");

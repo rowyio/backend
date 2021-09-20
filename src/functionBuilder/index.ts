@@ -77,13 +77,12 @@ export const functionBuilder = async (
   }
   await streamLogger.info("generateConfig success");
 
-  console.log(`deploying to ${projectId}`);
   await asyncExecute(
     `cd build/functionBuilder/functions; \
      yarn install`,
     commandErrorHandler({ user }, streamLogger)
   );
-
+  console.log(`deploying to ${projectId}`);
   await asyncExecute(
     `cd build/functionBuilder/functions; \
        yarn deploy \

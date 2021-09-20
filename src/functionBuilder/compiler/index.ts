@@ -60,7 +60,6 @@ export default async function generateConfig(
     },
     { merge: true }
   );
-  console.log(combinedConfig);
   generateFile({ ...combinedConfig, functionName, triggerPath });
 
   await streamLogger.info(`generateConfigFromTableSchema done`);
