@@ -2,8 +2,6 @@ import { auth } from "../firebaseConfig";
 
 export const requireAuth = async (req: any, res: any, next: any) => {
   try {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("content-type", "application/json");
     const authHeader = req.get("Authorization");
     if (!authHeader) return res.status(401).send("Unauthorized");
     const authToken = authHeader.split(" ")[1];

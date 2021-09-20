@@ -15,7 +15,7 @@ export const functionBuilder = async (
   req: any,
   user: firebase.auth.UserRecord
 ) => {
-  const { tablePath } = req.body;
+  const { tablePath, tableConfigPath } = req.body;
   const pathname = req.body.pathname.substring(1);
   if (!pathname || !tablePath)
     return { success: false, message: `missing pathname or tablePath` };
@@ -42,13 +42,16 @@ export const functionBuilder = async (
     triggerPath,
     functionName,
     functionConfigPath,
+    tablePath,
+    tableConfigPath,
   });
   await Promise.all([
     db.doc(functionConfigPath).set({ updatedAt: new Date() }, { merge: true }),
-    db.doc(tablePath).update({
+    db.doc(tableConfigPath).update({
       functionConfigPath,
     }),
   ]);
+  console.log("path set");
   const streamLogger = await createStreamLogger(functionConfigPath);
   await streamLogger.info("streamLogger created");
 
