@@ -27,11 +27,8 @@ import { metadataService } from "./metadataService";
 const app = express();
 // json is the default content-type for POST requests
 app.use(express.json());
-var corsOptions = {
-  origin: "*",
-  optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
-};
-app.use(cors(corsOptions));
+
+app.use(cors());
 const functionWrapper = (fn) => async (req, res) => {
   try {
     const data = await fn(req);
