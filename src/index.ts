@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import { hasAnyRole, requireAuth } from "./middleware/auth";
 import {
   deleteUser,
@@ -21,13 +22,16 @@ import {
   getOwner,
 } from "./setup";
 import { checkIfFTMigrationRequired, migrateFT2Rowy } from "./setup/ft2rowy";
-import cors from "cors";
+
 import { metadataService } from "./metadataService";
 const app = express();
 // json is the default content-type for POST requests
 app.use(express.json());
-app.use(cors());
-
+var corsOptions = {
+  origin: "*",
+  optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
+};
+app.use(cors(corsOptions));
 const functionWrapper = (fn) => async (req, res) => {
   try {
     const data = await fn(req);
