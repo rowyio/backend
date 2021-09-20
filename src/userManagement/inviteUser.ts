@@ -4,6 +4,15 @@ import { Request, Response } from "express";
 import { rowyUsers } from "../constants/Collections";
 import { httpsPost } from "../utils";
 import { getProjectId } from "../metadataService";
+
+const getFirebaseAuthUser = async (email: string) => {
+  try {
+    return await auth.getUserByEmail(email);
+  } catch (error) {
+    return false;
+  }
+};
+
 export const inviteUser = async (req: Request, res: Response) => {
   try {
     const inviterUser: admin.auth.UserRecord = res.locals.user;
@@ -17,41 +26,42 @@ export const inviteUser = async (req: Request, res: Response) => {
     if (userQuery.docs.length !== 0) {
       throw new Error("User already exists");
     }
-    const user = await auth.getUserByEmail(email);
+    // check if user already exists in firebase
+    let user = await getFirebaseAuthUser(email);
     if (!user) {
       // create user
-      const newUser = await auth.createUser({
+      user = await auth.createUser({
         email,
       });
-      // roles
-      auth.setCustomUserClaims(newUser.uid, { roles });
-      // send email
-      const resp = await httpsPost({
-        hostname: "rowy.run",
-        path: `/inviteUser`,
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: {
-          projectId,
-          secret: process.env.ROWY_SECRET,
-          newUser: {
-            email,
-            uid: newUser.uid,
-            roles,
-          },
-          inviter: {
-            email: inviterUser.email,
-            uid: inviterUser.uid,
-            displayName: inviterUser.displayName,
-          },
-        },
-      });
-      console.log(resp);
     }
-    res.send({ success: true });
+    // roles
+    await auth.setCustomUserClaims(user.uid, { roles });
+    // send email
+    const resp = await httpsPost({
+      hostname: "rowy.run",
+      path: `/inviteUser`,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: {
+        projectId,
+        secret: process.env.ROWY_SECRET,
+        newUser: {
+          email,
+          uid: user.uid,
+          roles,
+        },
+        inviter: {
+          email: inviterUser.email,
+          uid: inviterUser.uid,
+          displayName: inviterUser.displayName,
+        },
+      },
+    });
+    console.log(resp);
+    return res.send({ success: true });
   } catch (error: any) {
-    res.send({ error: error.message });
+    return res.send({ error: error.message });
   }
 };
