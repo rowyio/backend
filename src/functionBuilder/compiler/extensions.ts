@@ -10,7 +10,6 @@ export const addExtensionLib = async (
 ) => {
   try {
     const extensionResp = await getExtension(name);
-    console.log(extensionResp);
     const { extension, dependencies } = extensionResp;
     const packages = Object.keys(dependencies).map((key) => ({
       name: key,
@@ -23,19 +22,19 @@ export const addExtensionLib = async (
     const fs = require("fs");
     const path = require("path");
     fs.writeFileSync(
-      path.resolve(__dirname, `../functions/src/extensions/${name}.js`),
+      path.resolve(__dirname, `../functions/src/extensions/${name}.ts`),
       extension
     );
-    // await asyncExecute(
-    //   `cd build/functionBuilder/functions/src/extensions; tsc ${name}.ts`,
-    //   commandErrorHandler(
-    //     {
-    //       user,
-    //       description: "Error compiling extensionsLib",
-    //     },
-    //     streamLogger
-    //   )
-    // );
+    await asyncExecute(
+      `cd build/functionBuilder/functions/src/extensions; tsc ${name}.ts`,
+      commandErrorHandler(
+        {
+          user,
+          description: "Error compiling extensionsLib",
+        },
+        streamLogger
+      )
+    );
   } catch (error) {
     console.log(error);
     logErrorToDB(
