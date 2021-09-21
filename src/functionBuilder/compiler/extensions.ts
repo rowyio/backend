@@ -30,16 +30,17 @@ export const addExtensionLib = async (
       commandErrorHandler(
         {
           user,
-          description: "Error copying extensionsLib",
+          description: "Error compiling extensionsLib",
         },
         streamLogger
       )
     );
   } catch (error) {
+    console.log(error);
     logErrorToDB(
       {
         user,
-        errorDescription: "Error parsing dependencies",
+        errorDescription: `Error installing extension ${name}`,
       },
       streamLogger
     );

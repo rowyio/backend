@@ -2,7 +2,7 @@ import axios from "axios";
 import { generateServiceAccessToken } from "./metadataService";
 const getAxiosInstance = async () => {
   const baseURL = "https://rowy.run/";
-  const authToken = generateServiceAccessToken(baseURL);
+  const authToken = await generateServiceAccessToken(baseURL);
   return axios.create({
     baseURL: "https://rowy.run/",
     timeout: 1000,
