@@ -17,5 +17,5 @@ export const getExtension = async (
   extensionId: string
 ): Promise<{ dependencies: { [key: string]: string }; extension: string }> => {
   const axiosInstance = await getAxiosInstance();
-  return axiosInstance.get(`extensions/${extensionId}`);
+  return (await axiosInstance.get(`extensions/${extensionId}`)).data;
 };
