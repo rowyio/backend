@@ -1,4 +1,5 @@
-import { addPackages, addExtensionLib, asyncExecute } from "./terminal";
+import { addPackages, asyncExecute } from "./terminal";
+import { addExtensionLib } from "./extensions";
 const fs = require("fs");
 import {
   getConfigFromTableSchema,
