@@ -68,6 +68,8 @@ export default async function generateConfig(
     path.resolve(__dirname, "../functions/src/functionConfig.ts"),
     "utf-8"
   );
+  // sleep for a second
+  await new Promise((resolve) => setTimeout(resolve, 1000));
   await streamLogger.info(`configFile: ${JSON.stringify(configFile)}`);
   const requiredDependencies = configFile.match(
     /(?<=(require\(("|'))).*?(?=("|')\))/g

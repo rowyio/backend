@@ -24,6 +24,7 @@ if [[ -z "$project_id" ]];
 then
    helpFunction
 fi
+npx tsc
 npm run build
 gcloud config set project $project_id
 gcloud builds submit --tag gcr.io/$project_id/$name

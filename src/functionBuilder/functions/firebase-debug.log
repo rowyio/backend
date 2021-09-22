@@ -1,0 +1,64 @@
+[debug] [2021-09-22T10:23:17.831Z] ----------------------------------------------------------------------
+[debug] [2021-09-22T10:23:17.832Z] Command:       /usr/local/bin/node /usr/local/bin/firebase functions:shell --project rowyio
+[debug] [2021-09-22T10:23:17.833Z] CLI Version:   9.17.0
+[debug] [2021-09-22T10:23:17.833Z] Platform:      darwin
+[debug] [2021-09-22T10:23:17.833Z] Node Version:  v14.17.6
+[debug] [2021-09-22T10:23:17.833Z] Time:          Wed Sep 22 2021 20:23:17 GMT+1000 (Australian Eastern Standard Time)
+[debug] [2021-09-22T10:23:17.833Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2021-09-22T10:23:17.837Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2021-09-22T10:23:17.896Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2021-09-22T10:23:17.896Z] > authorizing via signed-in user (shams.mosowi@gmail.com)
+[debug] [2021-09-22T10:23:17.896Z] [iam] checking project rowyio for permissions ["firebase.projects.get"]
+[debug] [2021-09-22T10:23:17.897Z] > refreshing access token with scopes: ["email","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","openid"]
+[debug] [2021-09-22T10:23:17.897Z] >>> HTTP REQUEST POST https://www.googleapis.com/oauth2/v3/token  
+ <request body omitted>
+[debug] [2021-09-22T10:23:18.252Z] <<< HTTP RESPONSE 200 {"date":"Wed, 22 Sep 2021 10:23:18 GMT","pragma":"no-cache","expires":"Mon, 01 Jan 1990 00:00:00 GMT","cache-control":"no-cache, no-store, max-age=0, must-revalidate","content-type":"application/json; charset=utf-8","vary":"X-Origin, Referer, Origin,Accept-Encoding","server":"scaffolding on HTTPServer2","x-xss-protection":"0","x-frame-options":"SAMEORIGIN","x-content-type-options":"nosniff","alt-svc":"h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000,h3-T051=\":443\"; ma=2592000,h3-Q050=\":443\"; ma=2592000,h3-Q046=\":443\"; ma=2592000,h3-Q043=\":443\"; ma=2592000,quic=\":443\"; ma=2592000; v=\"46,43\"","accept-ranges":"none","transfer-encoding":"chunked"}
+[debug] [2021-09-22T10:23:18.302Z] >>> HTTP REQUEST POST https://cloudresourcemanager.googleapis.com/v1/projects/rowyio:testIamPermissions  
+ {"permissions":["firebase.projects.get"]}
+[debug] [2021-09-22T10:23:18.563Z] <<< [apiv2][status] GET https://firebase-public.firebaseio.com/cli.json 200
+[debug] [2021-09-22T10:23:18.563Z] <<< [apiv2][body] GET https://firebase-public.firebaseio.com/cli.json {"cloudBuildErrorAfter":1594252800000,"cloudBuildWarnAfter":1590019200000,"defaultNode10After":1594252800000,"minVersion":"3.0.5","node8DeploysDisabledAfter":1613390400000,"node8RuntimeDisabledAfter":1615809600000,"node8WarnAfter":1600128000000}
+[debug] [2021-09-22T10:23:19.635Z] <<< HTTP RESPONSE 200 {"content-type":"application/json; charset=UTF-8","vary":"X-Origin, Referer, Origin,Accept-Encoding","date":"Wed, 22 Sep 2021 10:23:19 GMT","server":"ESF","cache-control":"private","x-xss-protection":"0","x-frame-options":"SAMEORIGIN","x-content-type-options":"nosniff","server-timing":"gfet4t7; dur=1057","alt-svc":"h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000,h3-T051=\":443\"; ma=2592000,h3-Q050=\":443\"; ma=2592000,h3-Q046=\":443\"; ma=2592000,h3-Q043=\":443\"; ma=2592000,quic=\":443\"; ma=2592000; v=\"46,43\"","accept-ranges":"none","transfer-encoding":"chunked"}
+[warn] ⚠  Your requested "node" version "16" doesn't match your global version "14" {"metadata":{"emulator":{"name":"functions"},"message":"Your requested \"node\" version \"16\" doesn't match your global version \"14\""}}
+[debug] [2021-09-22T10:23:19.695Z] defaultcredentials: writing to file /Users/shamsmosowi/.config/firebase/shams_mosowi_gmail.com_application_default_credentials.json
+[debug] [2021-09-22T10:23:19.696Z] DEBUG: Setting GAC to /Users/shamsmosowi/.config/firebase/shams_mosowi_gmail.com_application_default_credentials.json
+[debug] [2021-09-22T10:23:19.697Z] > refreshing access token with scopes: []
+[debug] [2021-09-22T10:23:19.698Z] >>> HTTP REQUEST POST https://www.googleapis.com/oauth2/v3/token  
+ <request body omitted>
+[debug] [2021-09-22T10:23:19.918Z] <<< HTTP RESPONSE 200 {"date":"Wed, 22 Sep 2021 10:23:19 GMT","cache-control":"no-cache, no-store, max-age=0, must-revalidate","pragma":"no-cache","expires":"Mon, 01 Jan 1990 00:00:00 GMT","content-type":"application/json; charset=utf-8","vary":"X-Origin, Referer, Origin,Accept-Encoding","server":"scaffolding on HTTPServer2","x-xss-protection":"0","x-frame-options":"SAMEORIGIN","x-content-type-options":"nosniff","alt-svc":"h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000,h3-T051=\":443\"; ma=2592000,h3-Q050=\":443\"; ma=2592000,h3-Q046=\":443\"; ma=2592000,h3-Q043=\":443\"; ma=2592000,quic=\":443\"; ma=2592000; v=\"46,43\"","accept-ranges":"none","transfer-encoding":"chunked"}
+[debug] [2021-09-22T10:23:19.969Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/rowyio/adminSdkConfig [none]
+[debug] [2021-09-22T10:23:20.664Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/rowyio/adminSdkConfig 200
+[debug] [2021-09-22T10:23:20.665Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/rowyio/adminSdkConfig {"projectId":"rowyio","databaseURL":"https://rowyio.firebaseio.com","storageBucket":"rowyio.appspot.com","locationId":"us-central"}
+[debug] [2021-09-22T10:23:20.702Z] [functions] Watching "/Users/shamsmosowi/development/rowy/rowyRun/src/functionBuilder/functions" for Cloud Functions...
+[debug] [2021-09-22T10:23:20.724Z] DEBUG: [worker-pool] addWorker(~diagnostic~)
+[debug] [2021-09-22T10:23:20.725Z] DEBUG: [worker-pool] Adding worker with key ~diagnostic~, total=1
+[debug] [2021-09-22T10:23:20.725Z] DEBUG: [worker-pool] submitWork(triggerId=)
+[debug] [2021-09-22T10:23:20.725Z] DEBUG: [worker-~diagnostic~-1a4da7ac-b641-4a48-bcf0-4a344ba4287d]: Assigning socketPath: /var/folders/bf/nghtnvvj56b93zwvztqghc400000gn/T/fire_emu_40215.sock
+[debug] [2021-09-22T10:23:20.726Z] DEBUG: [worker-~diagnostic~-1a4da7ac-b641-4a48-bcf0-4a344ba4287d]: BUSY
+[debug] [2021-09-22T10:23:20.915Z] DEBUG: [runtime-status] [40215] Functions runtime initialized. {"cwd":"/Users/shamsmosowi/development/rowy/rowyRun/src/functionBuilder/functions","node_version":"14.17.6"}
+[debug] [2021-09-22T10:23:20.916Z] DEBUG: [runtime-status] [40215] Disabled runtime features: undefined
+[debug] [2021-09-22T10:23:20.923Z] DEBUG: [runtime-status] [40215] Resolved module firebase-admin {"declared":true,"installed":true,"version":"9.11.1","resolution":"/Users/shamsmosowi/development/rowy/rowyRun/node_modules/firebase-admin/lib/index.js"}
+[debug] [2021-09-22T10:23:20.925Z] DEBUG: [runtime-status] [40215] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.15.5","resolution":"/Users/shamsmosowi/development/rowy/rowyRun/node_modules/firebase-functions/lib/index.js"}
+[debug] [2021-09-22T10:23:20.928Z] DEBUG: [runtime-status] [40215] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.15.5","resolution":"/Users/shamsmosowi/development/rowy/rowyRun/node_modules/firebase-functions/lib/index.js"}
+[debug] [2021-09-22T10:23:20.929Z] DEBUG: [runtime-status] [40215] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"}]
+[debug] [2021-09-22T10:23:20.930Z] DEBUG: [runtime-status] [40215] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.15.5","resolution":"/Users/shamsmosowi/development/rowy/rowyRun/node_modules/firebase-functions/lib/index.js"}
+[debug] [2021-09-22T10:23:20.969Z] DEBUG: [runtime-status] [40215] Checked functions.config() {"config":{}}
+[debug] [2021-09-22T10:23:20.970Z] DEBUG: [runtime-status] [40215] firebase-functions has been stubbed. {"functionsResolution":{"declared":true,"installed":true,"version":"3.15.5","resolution":"/Users/shamsmosowi/development/rowy/rowyRun/node_modules/firebase-functions/lib/index.js"}}
+[debug] [2021-09-22T10:23:20.970Z] DEBUG: [runtime-status] [40215] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.15.5","resolution":"/Users/shamsmosowi/development/rowy/rowyRun/node_modules/firebase-functions/lib/index.js"}
+[debug] [2021-09-22T10:23:20.971Z] DEBUG: [runtime-status] [40215] Resolved module firebase-admin {"declared":true,"installed":true,"version":"9.11.1","resolution":"/Users/shamsmosowi/development/rowy/rowyRun/node_modules/firebase-admin/lib/index.js"}
+[debug] [2021-09-22T10:23:20.971Z] DEBUG: [runtime-status] [40215] Resolved module firebase-functions {"declared":true,"installed":true,"version":"3.15.5","resolution":"/Users/shamsmosowi/development/rowy/rowyRun/node_modules/firebase-functions/lib/index.js"}
+[debug] [2021-09-22T10:23:20.971Z] DEBUG: [runtime-status] [40215] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"9.11.1","resolution":"/Users/shamsmosowi/development/rowy/rowyRun/node_modules/firebase-admin/lib/index.js"}}
+[warn] ⚠  Error: Cannot find module '/Users/shamsmosowi/development/rowy/rowyRun/src/functionBuilder/functions/src/index.js'. Please verify that the package.json has a valid "main" entry
+    at tryPackage (internal/modules/cjs/loader.js:320:19)
+    at Function.Module._findPath (internal/modules/cjs/loader.js:533:18)
+    at Function.Module._resolveFilename (internal/modules/cjs/loader.js:875:27)
+    at Function.Module._load (internal/modules/cjs/loader.js:745:27)
+    at Module.require (internal/modules/cjs/loader.js:961:19)
+    at require (internal/modules/cjs/helpers.js:92:18)
+    at initializeRuntime (/usr/local/lib/node_modules/firebase-tools/lib/emulator/functionsEmulatorRuntime.js:715:29)
+    at processTicksAndRejections (internal/process/task_queues.js:95:5)
+    at async handleMessage (/usr/local/lib/node_modules/firebase-tools/lib/emulator/functionsEmulatorRuntime.js:759:20) {"metadata":{"emulator":{"name":"functions"},"message":"Error: Cannot find module '/Users/shamsmosowi/development/rowy/rowyRun/src/functionBuilder/functions/src/index.js'. Please verify that the package.json has a valid \"main\" entry\n    at tryPackage (internal/modules/cjs/loader.js:320:19)\n    at Function.Module._findPath (internal/modules/cjs/loader.js:533:18)\n    at Function.Module._resolveFilename (internal/modules/cjs/loader.js:875:27)\n    at Function.Module._load (internal/modules/cjs/loader.js:745:27)\n    at Module.require (internal/modules/cjs/loader.js:961:19)\n    at require (internal/modules/cjs/helpers.js:92:18)\n    at initializeRuntime (/usr/local/lib/node_modules/firebase-tools/lib/emulator/functionsEmulatorRuntime.js:715:29)\n    at processTicksAndRejections (internal/process/task_queues.js:95:5)\n    at async handleMessage (/usr/local/lib/node_modules/firebase-tools/lib/emulator/functionsEmulatorRuntime.js:759:20)"}}
+[warn] ⚠  We were unable to load your functions code. (see above)
+   - It appears your code is written in Typescript, which must be compiled before emulation. {"metadata":{"emulator":{"name":"functions"}}}
+[debug] [2021-09-22T10:23:20.996Z] DEBUG: [worker-~diagnostic~-1a4da7ac-b641-4a48-bcf0-4a344ba4287d]: exited
+[debug] [2021-09-22T10:23:20.996Z] DEBUG: [worker-~diagnostic~-1a4da7ac-b641-4a48-bcf0-4a344ba4287d]: FINISHED

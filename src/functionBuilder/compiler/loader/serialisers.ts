@@ -26,7 +26,14 @@ export const serialiseExtension = (extensions: IExtension[]): string =>
           requiredFields: [${extension.requiredFields
             .map((field) => `"${field}"`)
             .join(", ")}],
+            requiredPackages:${JSON.stringify(
+              getRequiredPackages(extension.extensionBody)
+            )},
           extensionBody: ${extension.extensionBody
+            .replace(
+              /(?:require\(.*)@\d+\.\d+\.\d+/g,
+              (capture) => capture.split("@")[0]
+            )
             .replace(/^.*:\s*\w*Body\s*=/, "")
             .replace(/\s*;\s*$/, "")}
         }`

@@ -84,7 +84,8 @@ export const functionBuilder = async (
      yarn install`,
       commandErrorHandler({ user }, streamLogger)
     );
-    console.log(`deploying to ${projectId}`);
+
+    streamLogger.info(`deploying ${functionName} to ${projectId}`);
     await asyncExecute(
       `cd build/functionBuilder/functions; \
        yarn deploy \

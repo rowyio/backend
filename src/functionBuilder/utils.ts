@@ -35,6 +35,7 @@ export const getCollectionPath = (collectionType, pathname, tables) => {
           t.id === pathname.split("/")[1] && t.tableType === "collectionGroup"
       ).collection;
     case "subCollection":
+    // const tablePath =
 
     default:
       break;
@@ -74,5 +75,4 @@ export const getTriggerPath = (
     default:
       return "";
   }
-  triggerPath;
 };

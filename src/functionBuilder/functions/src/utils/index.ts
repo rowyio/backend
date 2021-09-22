@@ -1,6 +1,6 @@
 import * as admin from "firebase-admin";
 import * as functions from "firebase-functions";
-
+import * as _ from "lodash";
 export const serverTimestamp = admin.firestore.FieldValue.serverTimestamp;
 import { sendEmail } from "./email";
 import { hasAnyRole } from "./auth";
@@ -67,8 +67,8 @@ const hasChanged =
     else
       return trackedFields.some(
         (trackedField) =>
-          JSON.stringify(before[trackedField]) !==
-          JSON.stringify(after[trackedField])
+          JSON.stringify(_.get(before, trackedField)) !==
+          JSON.stringify(_.get(after, trackedField))
       );
   };
 export default {
