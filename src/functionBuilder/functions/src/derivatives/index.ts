@@ -26,7 +26,7 @@ const derivative =
         async (accUpdates: any, currDerivative) => {
           const shouldEval = utilFns.hasChanged(change)([
             ...currDerivative.listenerFields,
-            "_ft_forcedUpdateAt",
+            "_forcedUpdateAt",
           ]);
           if (shouldEval) {
             try {

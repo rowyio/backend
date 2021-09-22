@@ -23,18 +23,27 @@ import {
 } from "./setup";
 import { checkIfFTMigrationRequired, migrateFT2Rowy } from "./setup/ft2rowy";
 import firebase from "firebase-admin";
+import { db } from "./firebaseConfig";
 
-import { metadataService } from "./metadataService";
+import { metadataService, getProjectId } from "./metadataService";
 const app = express();
 // json is the default content-type for POST requests
 app.use(express.json());
 
-app.use(
-  cors({
-    origin: "*",
-    methods: ["GET", "POST", "DELETE", "UPDATE", "PUT", "PATCH"],
-  })
-);
+app.use(cors());
+
+app.get("/", async (req, res) => {
+  const projectId = await getProjectId();
+  try {
+    const settingsDoc = await db.doc(`_rowy_/settings`).get();
+    const rowyRunUrl = settingsDoc.get("rowyRunUrl");
+    res.redirect(
+      `https://${projectId}.rowy.app/setup?rowyRunUrl=${rowyRunUrl}`
+    );
+  } catch (error) {
+    res.redirect(`https://${projectId}.rowy.app/setup`);
+  }
+});
 const functionWrapper = (fn) => async (req, res) => {
   try {
     const user: firebase.auth.UserRecord = res.locals.user;
