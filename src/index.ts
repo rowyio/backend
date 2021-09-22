@@ -37,9 +37,14 @@ app.get("/", async (req, res) => {
   try {
     const settingsDoc = await db.doc(`_rowy_/settings`).get();
     const rowyRunUrl = settingsDoc.get("rowyRunUrl");
-    res.redirect(
-      `https://${projectId}.rowy.app/setup?rowyRunUrl=${rowyRunUrl}`
-    );
+    const setupCompleted = settingsDoc.get("setupCompleted");
+    if (setupCompleted) {
+      res.send(`Rowy Run is setup successfully`);
+    } else {
+      res.redirect(
+        `https://${projectId}.rowy.app/setup?rowyRunUrl=${rowyRunUrl}`
+      );
+    }
   } catch (error) {
     res.redirect(`https://${projectId}.rowy.app/setup`);
   }
