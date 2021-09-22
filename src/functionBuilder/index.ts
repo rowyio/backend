@@ -24,75 +24,87 @@ export const functionBuilder = async (
   const tables = settings.get("tables");
   const collectionType = getCollectionType(pathname);
   const collectionPath = getCollectionPath(collectionType, pathname, tables);
-  const table = tables.find((t: any) => t.path === tablePath);
-  const triggerPath = getTriggerPath(
-    collectionType,
-    collectionPath,
-    table?.depth
-  );
   const functionName = getFunctionName(collectionType, collectionPath);
   const functionConfigPath = `_rowy_/settings/functions/${functionName}`;
-  const projectId = process.env.DEV
-    ? require("../../firebase-adminsdk.json").project_id
-    : await getProjectId();
-  console.log({
-    projectId,
-    collectionType,
-    collectionPath,
-    triggerPath,
-    functionName,
-    functionConfigPath,
-    tablePath,
-    tableConfigPath,
-  });
-  await Promise.all([
-    db.doc(functionConfigPath).set({ updatedAt: new Date() }, { merge: true }),
-    db.doc(tableConfigPath).update({
-      functionConfigPath,
-    }),
-  ]);
-  console.log("path set");
   const streamLogger = await createStreamLogger(functionConfigPath);
   await streamLogger.info("streamLogger created");
-
-  const success = await generateConfig(
-    {
-      functionConfigPath,
+  try {
+    const table = tables.find((t: any) => t.path === tablePath);
+    const triggerPath = getTriggerPath(
       collectionType,
       collectionPath,
-      functionName,
-      tables,
+      table?.depth
+    );
+    const projectId = process.env.DEV
+      ? require("../../firebase-adminsdk.json").project_id
+      : await getProjectId();
+    console.log({
+      projectId,
+      collectionType,
+      collectionPath,
       triggerPath,
-    },
-    user,
-    streamLogger
-  );
-  if (!success) {
-    await streamLogger.error("generateConfig failed to complete");
+      functionName,
+      functionConfigPath,
+      tablePath,
+      tableConfigPath,
+    });
+    await Promise.all([
+      db
+        .doc(functionConfigPath)
+        .set({ updatedAt: new Date() }, { merge: true }),
+      db.doc(tableConfigPath).update({
+        functionConfigPath,
+      }),
+    ]);
+
+    const success = await generateConfig(
+      {
+        functionConfigPath,
+        collectionType,
+        collectionPath,
+        functionName,
+        tables,
+        triggerPath,
+      },
+      user,
+      streamLogger
+    );
+    if (!success) {
+      await streamLogger.error("generateConfig failed to complete");
+      await streamLogger.fail();
+      return {
+        success: false,
+        reason: `generateConfig failed to complete`,
+      };
+    }
+    await streamLogger.info("generateConfig success");
+
+    await asyncExecute(
+      `cd build/functionBuilder/functions; \
+     yarn install`,
+      commandErrorHandler({ user }, streamLogger)
+    );
+    console.log(`deploying to ${projectId}`);
+    await asyncExecute(
+      `cd build/functionBuilder/functions; \
+       yarn deploy \
+        --project ${projectId} \
+        --only functions`,
+      commandErrorHandler({ user }, streamLogger)
+    );
+
+    await streamLogger.end();
+    return {
+      success: true,
+    };
+  } catch (error) {
+    await streamLogger.error(
+      "Function Builder Failed:\n" + JSON.stringify(error)
+    );
     await streamLogger.fail();
     return {
       success: false,
       reason: `generateConfig failed to complete`,
     };
   }
-  await streamLogger.info("generateConfig success");
-
-  await asyncExecute(
-    `cd build/functionBuilder/functions; \
-     yarn install`,
-    commandErrorHandler({ user }, streamLogger)
-  );
-  console.log(`deploying to ${projectId}`);
-  await asyncExecute(
-    `cd build/functionBuilder/functions; \
-       yarn deploy \
-        --project ${projectId} \
-        --only functions`,
-    commandErrorHandler({ user }, streamLogger)
-  );
-
-  await streamLogger.end();
-  return {
-    success: true,
-  };
 };
