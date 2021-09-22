@@ -1,10 +1,12 @@
 import { IExtension } from "./types";
 
 const getRequiredPackages = (code: string) =>
-  code.match(/(?<=(require\(("|'))).*?(?=("|')\))/g).map((p) => {
-    const [name, version] = p.split("@");
-    return { name, version: version ?? "latest" };
-  });
+  code
+    ? code.match(/(?<=(require\(("|'))).*?(?=("|')\))/g)?.map((p) => {
+        const [name, version] = p.split("@");
+        return { name, version: version ?? "latest" };
+      }) ?? []
+    : [];
 
 /* Convert extension objects into a single readable string */
 export const serialiseExtension = (extensions: IExtension[]): string =>
