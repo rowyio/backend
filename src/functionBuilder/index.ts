@@ -11,10 +11,16 @@ import firebase from "firebase-admin";
 import { getProjectId } from "../metadataService";
 import { db } from "../firebaseConfig";
 
+let isBuilding = false;
 export const functionBuilder = async (
   req: any,
   user: firebase.auth.UserRecord
 ) => {
+  if (isBuilding) {
+    return { success: false, message: `another build currently in progress` };
+  } else {
+    isBuilding = true;
+  }
   const { tablePath, tableConfigPath } = req.body;
   const pathname = req.body.pathname.substring(1);
   if (!pathname || !tablePath)
@@ -93,12 +99,13 @@ export const functionBuilder = async (
         --only functions`,
       commandErrorHandler({ user }, streamLogger)
     );
-
+    isBuilding = false;
     await streamLogger.end();
     return {
       success: true,
     };
   } catch (error) {
+    isBuilding = false;
     await streamLogger.error(
       "Function Builder Failed:\n" + JSON.stringify(error)
     );
