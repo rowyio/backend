@@ -24,6 +24,7 @@ import {
 import { checkIfFTMigrationRequired, migrateFT2Rowy } from "./setup/ft2rowy";
 import firebase from "firebase-admin";
 import { db } from "./firebaseConfig";
+import { getAlgoliaSearchKey } from "./connectTable/algolia";
 
 import { metadataService, getProjectId } from "./metadataService";
 const app = express();
@@ -134,8 +135,16 @@ app.post(
 
 //metadata service
 app.get("/metadata", requireAuth, hasAnyRole(["ADMIN"]), metadataService);
-//SECRET MANAGEMENT
 
+// get algoia search key
+app.get(
+  "/algoliaSearchKey",
+  requireAuth,
+  hasAnyRole(["ADMIN"]),
+  functionWrapper(getAlgoliaSearchKey)
+);
+
+//SECRET MANAGEMENT
 // get secret
 
 const port = process.env.PORT || 8080;
