@@ -138,12 +138,22 @@ app.get("/metadata", requireAuth, hasAnyRole(["ADMIN"]), metadataService);
 
 // get algoia search key
 app.get(
-  "/algoliaSearchKey",
+  "/algoliaSearchKey/:index",
   requireAuth,
-  hasAnyRole(["ADMIN"]),
   functionWrapper(getAlgoliaSearchKey)
 );
 
+app.get(
+  "/algoliaAppId",
+  requireAuth,
+  functionWrapper(() => {
+    if (process.env.ALGOLIA_APPLICATION_ID) {
+      return { appId: process.env.ALGOLIA_APPLICATION_ID, success: true };
+    } else {
+      return { success: false, message: "Algolia is not setup" };
+    }
+  })
+);
 //SECRET MANAGEMENT
 // get secret
 

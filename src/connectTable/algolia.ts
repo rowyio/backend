@@ -1,6 +1,6 @@
 import { User } from "../types/User";
-
-export const getAlgoliaSearchKey = (body, user: User) => {
+import { Request } from "express";
+export const getAlgoliaSearchKey = (req: Request, user: User) => {
   try {
     // check if environment variable is set
     const algoliasearch = require("algoliasearch");
@@ -8,7 +8,7 @@ export const getAlgoliaSearchKey = (body, user: User) => {
       process.env.ALGOLIA_APPLICATION_ID,
       process.env.ALGOLIA_ADMIN_KEY
     );
-    const { index } = body;
+    const { index } = req.params;
     if (!index) throw new Error("Index is required");
     const userRoles = user.roles;
     if (!userRoles || userRoles.length === 0)
@@ -30,7 +30,7 @@ export const getAlgoliaSearchKey = (body, user: User) => {
       }
     );
     return {
-      data: key,
+      key,
       success: true,
     };
   } catch (error: any) {

@@ -1,5 +1,6 @@
 import { addPackages, asyncExecute } from "./terminal";
 import { addExtensionLib } from "./extensions";
+import * as _ from "lodash";
 const fs = require("fs");
 import {
   getConfigFromTableSchema,
@@ -70,24 +71,6 @@ export default async function generateConfig(
   );
   // sleep for a second
   await new Promise((resolve) => setTimeout(resolve, 1000));
-  await streamLogger.info(`configFile: ${JSON.stringify(configFile)}`);
-  const requiredDependencies = configFile.match(
-    /(?<=(require\(("|'))).*?(?=("|')\))/g
-  );
-  if (requiredDependencies) {
-    const packgesAdded = await addPackages(
-      requiredDependencies.map((p: any) => ({ name: p })),
-      user,
-      streamLogger
-    );
-    if (!packgesAdded) {
-      return false;
-    }
-  }
-  await streamLogger.info(
-    `requiredDependencies: ${JSON.stringify(requiredDependencies)}`
-  );
-
   const isFunctionConfigValid = await asyncExecute(
     "cd build/functionBuilder/functions/src; tsc functionConfig.ts",
     commandErrorHandler(
@@ -99,14 +82,51 @@ export default async function generateConfig(
       streamLogger
     )
   );
+  if (!isFunctionConfigValid)
+    throw new Error("Invalid compiled functionConfig.ts");
   await streamLogger.info(
     `isFunctionConfigValid: ${JSON.stringify(isFunctionConfigValid)}`
   );
-  if (!isFunctionConfigValid) {
-    return false;
-  }
+  await streamLogger.info(`configFile: ${JSON.stringify(configFile)}`);
+  let requiredDependencies = [];
+  const {
+    derivativesConfig,
+    defaultValueConfig,
+    extensionsConfig,
+  } = require("../functions/src/functionConfig");
+  derivativesConfig.forEach((i) => {
+    if (i.requiredPackages && i.requiredPackages.length > 0) {
+      requiredDependencies = requiredDependencies.concat(i.requiredPackages);
+    }
+  });
+  defaultValueConfig.forEach((i) => {
+    if (i.requiredPackages && i.requiredPackages.length > 0) {
+      requiredDependencies = requiredDependencies.concat(i.requiredPackages);
+    }
+  });
+  extensionsConfig.forEach((i) => {
+    if (i.requiredPackages && i.requiredPackages.length > 0) {
+      requiredDependencies = requiredDependencies.concat(i.requiredPackages);
+    }
+  });
 
-  const { extensionsConfig } = require("../functions/src/functionConfig.js");
+  // remove duplicates from requiredDependencies with lodash
+  requiredDependencies = _.uniqWith(requiredDependencies, _.isEqual);
+
+  if (requiredDependencies) {
+    const packgesAdded = await addPackages(
+      requiredDependencies,
+      user,
+      streamLogger
+    );
+    if (!packgesAdded) {
+      return false;
+    }
+  }
+  await streamLogger.info(
+    `requiredDependencies: ${JSON.stringify(requiredDependencies)}`
+  );
+
   const requiredExtensions = extensionsConfig.map((s: any) => s.type);
   await streamLogger.info(
     `requiredExtensions: ${JSON.stringify(requiredExtensions)}`
