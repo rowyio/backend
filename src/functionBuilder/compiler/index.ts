@@ -40,15 +40,15 @@ export default async function generateConfig(
     },
     { merge: true }
   );
-  generateFile({ ...combinedConfig, functionName, triggerPath });
+  await generateFile({ ...combinedConfig, functionName, triggerPath });
 
   await streamLogger.info(`generateConfigFromTableSchema done`);
+  // sleep for a bit to insure file is ready
+  await new Promise((resolve) => setTimeout(resolve, 100));
   const configFile = fs.readFileSync(
     path.resolve(__dirname, "../functions/src/functionConfig.ts"),
     "utf-8"
   );
-  // sleep for a second
-  await new Promise((resolve) => setTimeout(resolve, 1000));
   const isFunctionConfigValid = await asyncExecute(
     "cd build/functionBuilder/functions/src; tsc functionConfig.ts",
     commandErrorHandler(
