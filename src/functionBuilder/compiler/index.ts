@@ -15,37 +15,15 @@ import admin from "firebase-admin";
 export default async function generateConfig(
   data: {
     functionConfigPath: string;
-    collectionType: string;
-    collectionPath: string;
     functionName: string;
     triggerPath: string;
-    tables: any[];
+    tableSchemaPaths: string[];
   },
   user: admin.auth.UserRecord,
   streamLogger
 ) {
-  const {
-    functionConfigPath,
-    collectionType,
-    collectionPath,
-    triggerPath,
-    functionName,
-    tables,
-  } = data;
-  let tableSchemaPaths = [];
-  switch (collectionType) {
-    case "collection":
-      const collectionTables = tables.filter(
-        (table: any) => table.collection === collectionPath
-      );
-      tableSchemaPaths = collectionTables.map(
-        (table: any) =>
-          `/_rowy_/settings/schema/${table.id ?? table.collection}`
-      );
-      break;
-    default:
-      break;
-  }
+  const { functionConfigPath, tableSchemaPaths, triggerPath, functionName } =
+    data;
   const configs = (
     await Promise.all(
       tableSchemaPaths.map((path) =>

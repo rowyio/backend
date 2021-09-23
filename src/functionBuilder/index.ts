@@ -4,13 +4,13 @@ import {
   getCollectionPath,
   getFunctionName,
   getTriggerPath,
+  getSchemaPaths,
 } from "./utils";
 import generateConfig from "./compiler";
 import { commandErrorHandler, createStreamLogger } from "./logger";
 import firebase from "firebase-admin";
 import { getProjectId } from "../metadataService";
 import { db } from "../firebaseConfig";
-
 let isBuilding = false;
 export const functionBuilder = async (
   req: any,
@@ -29,7 +29,12 @@ export const functionBuilder = async (
   const settings = await db.doc(`_rowy_/settings`).get();
   const tables = settings.get("tables");
   const collectionType = getCollectionType(pathname);
-  const collectionPath = getCollectionPath(collectionType, pathname, tables);
+  const collectionPath = getCollectionPath(
+    collectionType,
+    tablePath,
+    pathname,
+    tables
+  );
   const functionName = getFunctionName(collectionType, collectionPath);
   const functionConfigPath = `_rowy_/settings/functions/${functionName}`;
   const streamLogger = await createStreamLogger(functionConfigPath);
@@ -41,6 +46,12 @@ export const functionBuilder = async (
       collectionPath,
       table?.depth
     );
+    const tableSchemaPaths = getSchemaPaths({
+      collectionType,
+      collectionPath,
+      tables,
+      tableConfigPath,
+    });
     const projectId = process.env.DEV
       ? require("../../firebase-adminsdk.json").project_id
       : await getProjectId();
@@ -53,6 +64,7 @@ export const functionBuilder = async (
       functionConfigPath,
       tablePath,
       tableConfigPath,
+      tableSchemaPaths,
     });
     await Promise.all([
       db
@@ -66,10 +78,8 @@ export const functionBuilder = async (
     const success = await generateConfig(
       {
         functionConfigPath,
-        collectionType,
-        collectionPath,
+        tableSchemaPaths,
         functionName,
-        tables,
         triggerPath,
       },
       user,
