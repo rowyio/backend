@@ -6,9 +6,7 @@ export const requireAuth = async (req: any, res: any, next: any) => {
     if (!authHeader) return res.status(401).send("Unauthorized");
     const authToken = authHeader.split(" ")[1];
     const decodedToken = await auth.verifyIdToken(authToken);
-    const uid = decodedToken.uid;
-    const user = await auth.getUser(uid);
-    res.locals.user = user;
+    res.locals.user = decodedToken;
     next();
   } catch (error) {
     console.error(error);
@@ -20,7 +18,7 @@ export const hasAnyRole =
   (roles: string[]) => async (req: any, res: any, next: Function) => {
     try {
       const user = res.locals.user;
-      const userRoles: string[] = user.customClaims.roles;
+      const userRoles: string[] = user.roles;
       // user roles must have at least one of the roles
       const authorized = roles.some((role) => userRoles.includes(role));
       if (authorized) {

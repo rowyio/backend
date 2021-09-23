@@ -28,6 +28,9 @@ const serverTimestamp = admin.firestore.FieldValue.serverTimestamp;
 export const actionScript = async (req: Request, res: Response) => {
   try {
     const user = res.locals.user;
+    const userRoles = user.roles;
+    if (!userRoles || userRoles.length === 0)
+      throw new Error("User has no roles");
     const { ref, actionParams, column, action, schemaDocPath }: ActionData =
       req.body;
     const [schemaDoc, rowQuery] = await Promise.all([
@@ -47,7 +50,7 @@ export const actionScript = async (req: Request, res: Response) => {
     if (!requiredRoles || requiredRoles.length === 0) {
       throw Error(`You need to specify at least one role to run this script`);
     }
-    if (!requiredRoles.some((role) => user.customClaims.roles.includes(role))) {
+    if (!requiredRoles.some((role) => userRoles.includes(role))) {
       throw Error(`You don't have the required roles permissions`);
     }
 

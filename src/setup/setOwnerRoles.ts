@@ -3,7 +3,8 @@ import { auth, db } from "../firebaseConfig";
 export const setOwnerRoles = async (req: Request, res: Response) => {
   try {
     const userManagementDoc = await db.doc("_rowy_/userManagement").get();
-    const user = res.locals.user;
+    const userToken = res.locals.user;
+    const user = await auth.getUser(userToken.uid);
     const ownerEmail = userManagementDoc.get("owner.email");
     if (user.email !== ownerEmail)
       return res.send({
