@@ -1,3 +1,6 @@
+FROM gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+WORKDIR /workdir
+
 FROM node:14-slim
 
 # Create and change to the app directory.
@@ -14,7 +17,5 @@ RUN yarn
 RUN npx tsc
 RUN yarn build
 # Copy local code to the container image.
-
-
 # Run the web service on container startup.
 CMD [ "yarn", "start" ]

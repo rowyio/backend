@@ -27,6 +27,7 @@ import { db } from "./firebaseConfig";
 import { getAlgoliaSearchKey } from "./connectTable/algolia";
 
 import { metadataService, getProjectId } from "./metadataService";
+import { updateRowyRun } from "./versionManager";
 const app = express();
 // json is the default content-type for POST requests
 app.use(express.json());
@@ -154,6 +155,11 @@ app.get(
     }
   })
 );
+
+app.post("/updateRowyRun", async (req, res) => {
+  await updateRowyRun();
+  res.send({ success: true });
+});
 //SECRET MANAGEMENT
 // get secret
 

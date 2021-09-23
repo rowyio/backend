@@ -1,6 +1,5 @@
 #!/bin/bash
 name=rowy-run
-public_image_project=rowy-service
 helpFunction()
 {
    echo "Usage: ./deploy.sh --project [YOUR GCLOUD PROJECT ID]"
@@ -25,5 +24,8 @@ if [[ -z "$project_id" ]];
 then
    helpFunction
 fi
+npx tsc
+npm run build
 gcloud config set project $project_id
-gcloud run deploy $name --image gcr.io/$public_image_project/$name --platform managed --memory 2Gi --allow-unauthenticated
+gcloud builds submit --tag gcr.io/$project_id/$name
+gcloud run deploy $name --image gcr.io/$project_id/$name --platform managed --memory 2Gi --allow-unauthenticated
