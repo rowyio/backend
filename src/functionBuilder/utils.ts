@@ -54,7 +54,7 @@ export const getCollectionPath = (
 export const getFunctionName = (
   collectionType: string,
   collectionPath: string,
-  depth?: number
+  depth: number = 1
 ) => {
   switch (collectionType) {
     case "collection":
@@ -73,7 +73,7 @@ export const getFunctionName = (
 export const getTriggerPath = (
   collectionType: string,
   collectionPath: string,
-  depth?: number
+  depth: number = 1
 ) => {
   let triggerPath = "";
   switch (collectionType) {
