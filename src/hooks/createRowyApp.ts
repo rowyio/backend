@@ -1,6 +1,6 @@
 const client = require("firebase-tools");
 import { httpsPost } from "../utils";
-
+const hostname = "rowy.app";
 export const getRowyApp = (projectId: string) =>
   new Promise((resolve) => {
     const getSDKConfig = (appId: string) =>
@@ -35,11 +35,22 @@ export const getRowyApp = (projectId: string) =>
 
 export const registerRowyApp = async (body) =>
   httpsPost({
-    hostname: "rowy.run",
+    hostname,
     path: `/createProject`,
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body,
+  });
+
+export const logError = (body) =>
+  httpsPost({
+    hostname,
+    path: `/deploymentError`,
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: { projectId: process.env.GOOGLE_CLOUD_PROJECT, ...body },
   });
