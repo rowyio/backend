@@ -1,5 +1,4 @@
 import { db } from "../firebaseConfig";
-import chalk from "chalk";
 import { logo } from "../asciiLogo";
 import { getGCPEmail, getProjectId } from "./utils";
 import { getRowyApp, registerRowyApp } from "./createRowyApp";
@@ -30,14 +29,12 @@ async function start() {
     await db.doc("_rowy_/userManagement").set(userManagement, { merge: true });
 
     const firebaseConfig = await getRowyApp(projectId);
-    console.log({ firebaseConfig });
     const { success, message }: any = await registerRowyApp({
       ownerEmail: gcpEmail,
       firebaseConfig,
       secret: process.env.ROWY_SECRET,
     });
     if (!success) throw new Error(message);
-    console.log(chalk.green("Successfully created rowy app"));
     console.log(logo);
     console.log(
       `
