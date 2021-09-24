@@ -29,6 +29,7 @@ async function start() {
 
   const firebaseConfig = await getRowyApp(projectId);
   const { success, message }: any = await registerRowyApp({
+    ownerEmail: gcpEmail,
     firebaseConfig,
     secret: process.env.ROWY_SECRET,
   });

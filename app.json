@@ -9,6 +9,12 @@
     "allow-unauthenticated": true,
     "memory": "2Gi"
   },
+  "build": {
+    "skip": false,
+    "buildpacks": {
+      "builder": "gcr.io/rowy-service/rowy-run"
+    }
+  },
   "hooks": {
     "prebuild": {
       "commands": [
