@@ -13,6 +13,7 @@ export function httpsPost({ body, ...options }: any) {
           body += chunk;
         });
         res.on("end", () => {
+          console.log(body);
           resolve(JSON.parse(body));
         });
       }
