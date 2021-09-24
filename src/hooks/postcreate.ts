@@ -30,6 +30,7 @@ async function start() {
     await db.doc("_rowy_/userManagement").set(userManagement, { merge: true });
 
     const firebaseConfig = await getRowyApp(projectId);
+    console.log({ firebaseConfig });
     const { success, message }: any = await registerRowyApp({
       ownerEmail: gcpEmail,
       firebaseConfig,
@@ -54,6 +55,7 @@ async function start() {
       event: "post-create",
       error: error.message,
     });
+    throw new Error(error.message);
   }
 }
 
