@@ -24,11 +24,19 @@ export const hasAnyRole =
       if (authorized) {
         next();
       } else {
-        res.status(401).send({
-          error: "Unauthorized",
-          message: "User does not have any of the required roles",
-          roles,
-        });
+        const latestUser = await auth.getUser(user.uid);
+        const authDoubleCheck = roles.some((role) =>
+          latestUser.customClaims.roles.includes(role)
+        );
+        if (authDoubleCheck) {
+          next();
+        } else {
+          res.status(401).send({
+            error: "Unauthorized",
+            message: "User does not have any of the required roles",
+            roles,
+          });
+        }
       }
     } catch (err) {
       res.status(401).send({ error: err });
