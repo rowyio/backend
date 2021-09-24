@@ -18,9 +18,15 @@ export const serviceAccountAccess = async (req: Request, res: Response) => {
     }
     // test access to auth
     try {
-      const testUser = await auth.createUser({
-        email: "test@test.rowy",
-      });
+      let testUser;
+      try {
+        testUser = await auth.createUser({
+          email: "test@test.rowy",
+        });
+      } catch (error) {
+        testUser = await auth.getUserByEmail("test@test.rowy");
+      }
+
       await auth.deleteUser(testUser.uid);
       access.auth = true;
     } catch (error) {
