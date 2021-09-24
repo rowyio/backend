@@ -1,6 +1,6 @@
 const client = require("firebase-tools");
 import { httpsPost } from "../utils";
-const hostname = "rowy.app";
+const hostname = "rowy.run";
 export const getRowyApp = (projectId: string) =>
   new Promise((resolve) => {
     const getSDKConfig = (appId: string) =>
