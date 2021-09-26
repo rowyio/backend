@@ -4,6 +4,7 @@ import { Request, Response } from "express";
 import { rowyUsers } from "../constants/Collections";
 import { httpsPost } from "../utils";
 import { getProjectId } from "../metadataService";
+import { User } from "../types/User";
 
 const getFirebaseAuthUser = async (email: string) => {
   try {
@@ -15,7 +16,7 @@ const getFirebaseAuthUser = async (email: string) => {
 
 export const inviteUser = async (req: Request, res: Response) => {
   try {
-    const inviterUser: admin.auth.UserRecord = res.locals.user;
+    const inviterUser: User = res.locals.user;
     const { email, roles } = req.body;
     const projectId = await getProjectId();
     // check if user exists
@@ -55,7 +56,7 @@ export const inviteUser = async (req: Request, res: Response) => {
         inviter: {
           email: inviterUser.email,
           uid: inviterUser.uid,
-          displayName: inviterUser.displayName,
+          name: inviterUser.name,
         },
       },
     });
