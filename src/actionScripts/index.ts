@@ -74,7 +74,7 @@ export const actionScript = async (req: Request, res: Response) => {
       row,
       db,
       auth, // utilFns,
-      ref,
+      ref: db.doc(ref.path),
       actionParams, //context
     });
     if (result.success || result.status) {
