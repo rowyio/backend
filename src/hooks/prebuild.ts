@@ -2,11 +2,11 @@ import { updateConfig, getProjectId } from "./utils";
 import { db } from "../firebaseConfig";
 import { logError } from "./createRowyApp";
 async function start() {
+  const projectId = getProjectId();
+  if (!projectId) {
+    throw new Error("GOOGLE_CLOUD_PROJECT env variable is not set");
+  }
   try {
-    const projectId = getProjectId();
-    if (!projectId) {
-      throw new Error("GOOGLE_CLOUD_PROJECT env variable is not set");
-    }
     updateConfig("projectId", projectId);
     const settings = {
       rowyRunBuildStatus: "BUILDING",
@@ -23,6 +23,7 @@ async function start() {
       event: "pre-build",
       error,
     });
+    throw new Error(`Rowy deployment failed: ${JSON.stringify(error)}`);
   }
 }
 
