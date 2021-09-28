@@ -1,9 +1,11 @@
+<img src="logo-sticker.svg" alt="Rowy Run" height="60" />
 
-<img width="300" src="https://user-images.githubusercontent.com/307298/134683235-ee2eed34-a7cf-418d-8890-bbcacb499b33.png"/>
+<big>
+Rowy Run is a Cloud Run instance that provides backend functionality, such as table action scripts, user management, and easy Cloud Function deployment.
+</big>
 
-Cloud run instance for running Rowy's backend functionality. Click the quick deploy button below to get started.
-
+Click the deploy button below to get started.
 
 [![Deploy to Google Cloud Run](https://deploy.cloud.run/button.svg)](https://deploy.cloud.run/?git_repo=https://github.com/rowyio/rowyRun.git)
 
-#### [Read the full docs here](https://docs.rowy.io)
+### [Read the documentation →](https://docs.rowy.io/rowy-run)
