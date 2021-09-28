@@ -1,6 +1,7 @@
 import { updateConfig, getProjectId } from "./utils";
 import { db } from "../firebaseConfig";
 import { logError } from "./createRowyApp";
+
 async function start() {
   const projectId = getProjectId();
   if (!projectId) {
@@ -8,6 +9,7 @@ async function start() {
   }
   try {
     updateConfig("projectId", projectId);
+    updateConfig("region", process.env.GOOGLE_CLOUD_REGION);
     const settings = {
       rowyRunBuildStatus: "BUILDING",
       rowyRunRegion: process.env.GOOGLE_CLOUD_REGION,

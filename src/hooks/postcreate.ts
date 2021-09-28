@@ -3,7 +3,6 @@ import { logo } from "../asciiLogo";
 import { getGCPEmail, getProjectId } from "./utils";
 import { getRowyApp, registerRowyApp } from "./createRowyApp";
 import { logError } from "./createRowyApp";
-//import { updateConfig } from "./utils";
 
 async function start() {
   try {
