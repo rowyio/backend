@@ -23,6 +23,7 @@ async function start() {
       event: "pre-build",
       error,
     });
+    throw new Error(`Rowy deployment failed: ${JSON.stringify(error)}`);
   }
 }
 
