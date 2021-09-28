@@ -2,11 +2,12 @@ import { updateConfig, getProjectId } from "./utils";
 import { db } from "../firebaseConfig";
 import { logError } from "./createRowyApp";
 async function start() {
+  const projectId = getProjectId();
+  if (!projectId) {
+    throw new Error("GOOGLE_CLOUD_PROJECT env variable is not set");
+  }
+  throw new Error("test error");
   try {
-    const projectId = getProjectId();
-    if (!projectId) {
-      throw new Error("GOOGLE_CLOUD_PROJECT env variable is not set");
-    }
     updateConfig("projectId", projectId);
     const settings = {
       rowyRunBuildStatus: "BUILDING",
