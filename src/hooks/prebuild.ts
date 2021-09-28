@@ -6,7 +6,6 @@ async function start() {
   if (!projectId) {
     throw new Error("GOOGLE_CLOUD_PROJECT env variable is not set");
   }
-  throw new Error("test error");
   try {
     updateConfig("projectId", projectId);
     const settings = {

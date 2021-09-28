@@ -34,7 +34,8 @@ async function start() {
       firebaseConfig,
       secret: process.env.ROWY_SECRET,
     });
-    if (!success) throw new Error(message);
+    if (!success && message !== "project already exists")
+      throw new Error(message);
     console.log(logo);
     console.log(
       `
