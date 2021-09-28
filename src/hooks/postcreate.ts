@@ -32,6 +32,7 @@ async function start() {
       ownerEmail: gcpEmail,
       firebaseConfig,
       secret: process.env.ROWY_SECRET,
+      rowyRunUrl: process.env.SERVICE_URL,
     });
     if (!success && message !== "project already exists")
       throw new Error(message);
