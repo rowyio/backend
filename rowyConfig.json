@@ -1,5 +1,4 @@
 {
   "name": "rowy-service",
-  "description": "cloud run instance for running Rowy's backend functionality",
-  "region": "us-central!!"
+  "description": "cloud run instance for running Rowy's backend functionality"
 }
