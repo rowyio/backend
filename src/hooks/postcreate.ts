@@ -48,7 +48,7 @@ async function start() {
     );
   } catch (error: any) {
     console.log(error);
-    logError({
+    await logError({
       event: "post-create",
       error: error.message,
     });

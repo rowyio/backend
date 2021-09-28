@@ -1,5 +1,7 @@
 const client = require("firebase-tools");
+
 import { httpsPost } from "../utils";
+import { getGCPEmail } from "./utils";
 const hostname = "rowy.run";
 export const getRowyApp = (projectId: string) =>
   new Promise((resolve) => {
@@ -44,13 +46,15 @@ export const registerRowyApp = async (body) =>
     body,
   });
 
-export const logError = (body) =>
-  httpsPost({
+export const logError = async (body) => {
+  const ownerEmail = await getGCPEmail();
+  return httpsPost({
     hostname,
     path: `/deploymentError`,
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: { projectId: process.env.GOOGLE_CLOUD_PROJECT, ...body },
+    body: { projectId: process.env.GOOGLE_CLOUD_PROJECT, ownerEmail, ...body },
   });
+};

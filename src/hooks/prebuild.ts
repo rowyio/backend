@@ -20,8 +20,7 @@ async function start() {
     };
     await db.doc("_rowy_/publicSettings").set(publicSettings, { merge: true });
   } catch (error) {
-    console.log(error);
-    logError({
+    await logError({
       event: "pre-build",
       error,
     });
