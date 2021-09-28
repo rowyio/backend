@@ -14,6 +14,7 @@ export const serviceAccountAccess = async (req: Request, res: Response) => {
       await testDocRef.delete;
       access.firestore = true;
     } catch (error) {
+      console.log(error);
       access.firestore = false;
     }
     // test access to auth
@@ -30,15 +31,16 @@ export const serviceAccountAccess = async (req: Request, res: Response) => {
       await auth.deleteUser(testUser.uid);
       access.auth = true;
     } catch (error) {
+      console.log(error);
       access.auth = false;
     }
-
     // test access to firestore rules
     try {
       const securityRules = admin.securityRules();
       await securityRules.getFirestoreRuleset();
       access.firestoreRules = true;
     } catch (error) {
+      console.log(error);
       access.firestoreRules = false;
     }
 
