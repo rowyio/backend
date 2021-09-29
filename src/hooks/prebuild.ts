@@ -56,6 +56,20 @@ bigquerydatatransfer.googleapis.com     BigQuery Data Transfer API
     });
     throw new Error(`Rowy deployment failed: ${JSON.stringify(error)}`);
   }
+  console.log("deploy prebuilt image");
+  asyncExecute(
+    `gcloud run deploy rowy-run\
+          --project=tryrowy\
+          --platform=managed\
+          --region=us-central1\
+          --image=gcr.io/rowy-run/rowy-run\
+          --update-env-vars=ROWY_SECRET=test-secret==\
+          --allow-unauthenticated\
+          --memory=2Gi`,
+    () => {
+      console.log("deployed");
+    }
+  );
 }
 
 start();
