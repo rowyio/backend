@@ -12,6 +12,7 @@
   "hooks": {
     "prebuild": {
       "commands": [
+        "gcloud services list",
         "npm install",
         "npm run build",
         "cd build/hooks && node prebuild"
