@@ -1,4 +1,13 @@
 import https from "https";
+import { exec } from "child_process";
+function execute(command: string, callback: any) {
+  console.log(command);
+  exec(command, function (error, stdout, stderr) {
+    console.log({ error, stdout, stderr });
+    callback(stdout);
+  });
+}
+
 export function httpsPost({ body, ...options }: any) {
   return new Promise((resolve, reject) => {
     const req = https.request(

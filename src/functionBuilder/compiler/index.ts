@@ -67,37 +67,30 @@ export default async function generateConfig(
   );
   await streamLogger.info(`configFile: ${JSON.stringify(configFile)}`);
   let requiredDependencies = [];
+  const appendDependencies = (i) => {
+    if (i.requiredPackages && i.requiredPackages.length > 0) {
+      requiredDependencies = requiredDependencies.concat(i.requiredPackages);
+    }
+  };
   const {
     derivativesConfig,
     defaultValueConfig,
     extensionsConfig,
   } = require("../functions/src/functionConfig");
-  derivativesConfig.forEach((i) => {
-    if (i.requiredPackages && i.requiredPackages.length > 0) {
-      requiredDependencies = requiredDependencies.concat(i.requiredPackages);
-    }
-  });
-  defaultValueConfig.forEach((i) => {
-    if (i.requiredPackages && i.requiredPackages.length > 0) {
-      requiredDependencies = requiredDependencies.concat(i.requiredPackages);
-    }
-  });
-  extensionsConfig.forEach((i) => {
-    if (i.requiredPackages && i.requiredPackages.length > 0) {
-      requiredDependencies = requiredDependencies.concat(i.requiredPackages);
-    }
-  });
+  derivativesConfig.forEach(appendDependencies);
+  defaultValueConfig.forEach(appendDependencies);
+  extensionsConfig.forEach(appendDependencies);
 
   // remove duplicates from requiredDependencies with lodash
   requiredDependencies = _.uniqWith(requiredDependencies, _.isEqual);
 
   if (requiredDependencies) {
-    const packgesAdded = await addPackages(
+    const packagesAdded = await addPackages(
       requiredDependencies,
       user,
       streamLogger
     );
-    if (!packgesAdded) {
+    if (!packagesAdded) {
       return false;
     }
   }
@@ -116,6 +109,5 @@ export default async function generateConfig(
       return false;
     }
   }
-
   return true;
 }

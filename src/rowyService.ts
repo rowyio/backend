@@ -15,7 +15,11 @@ const getAxiosInstance = async () => {
 
 export const getExtension = async (
   extensionId: string
-): Promise<{ dependencies: { [key: string]: string }; extension: string }> => {
+): Promise<{
+  dependencies: { [key: string]: string };
+  extension: string;
+  syncScript?: string;
+}> => {
   const axiosInstance = await getAxiosInstance();
   return (await axiosInstance.get(`extensions/${extensionId}`)).data;
 };
