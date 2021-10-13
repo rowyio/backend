@@ -56,7 +56,7 @@ export const migrateFT2Rowy = async () => {
       ...rest,
     };
   });
-  await db.doc(ROWY_SETTINGS).set({ table: newTables }, { merge: true });
+  await db.doc(ROWY_SETTINGS).set({ tables: newTables }, { merge: true });
 
   const tables = await db.collection(FT_TABLE_SCHEMAS).get();
   const groupTables = await db.collection(FT_GROUP_TABLE_SCHEMAS).get();

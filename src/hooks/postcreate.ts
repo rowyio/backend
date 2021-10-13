@@ -3,7 +3,6 @@ import { logo } from "../asciiLogo";
 import { getGCPEmail, getProjectId } from "./utils";
 import { getRowyApp, registerRowyApp } from "./createRowyApp";
 import { logError } from "./createRowyApp";
-//import { updateConfig } from "./utils";
 
 async function start() {
   try {
@@ -33,8 +32,10 @@ async function start() {
       ownerEmail: gcpEmail,
       firebaseConfig,
       secret: process.env.ROWY_SECRET,
+      rowyRunUrl: process.env.SERVICE_URL,
     });
-    if (!success) throw new Error(message);
+    if (!success && message !== "project already exists")
+      throw new Error(message);
     console.log(logo);
     console.log(
       `
@@ -48,7 +49,7 @@ async function start() {
     );
   } catch (error: any) {
     console.log(error);
-    logError({
+    await logError({
       event: "post-create",
       error: error.message,
     });
