@@ -2,7 +2,7 @@ import { IExtension } from "./types";
 
 const getRequiredPackages = (code: string) =>
   code
-    ? code.match(/(?<=(require\(("|'))).*?(?=("|')\))/g)?.map((p) => {
+    ? code.match(/(?<=(require\(("|')))[^.].*?(?=("|')\))/g)?.map((p) => {
         const [name, version] = p.split("@");
         return { name, version: version ?? "latest" };
       }) ?? []
