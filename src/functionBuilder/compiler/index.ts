@@ -67,6 +67,8 @@ export default async function generateConfig(
   );
   await streamLogger.info(`configFile: ${JSON.stringify(configFile)}`);
   let requiredDependencies = [];
+  // sleep for a bit to insure file is ready
+  await new Promise((resolve) => setTimeout(resolve, 100));
   const {
     derivativesConfig,
     defaultValueConfig,
