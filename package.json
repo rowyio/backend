@@ -1,7 +1,7 @@
 {
   "name": "rowy-run",
   "description": "cloud run instance for running Rowy's backend functionality",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "main": "build/index.js",
   "scripts": {
@@ -11,7 +11,8 @@
     "system-test": "NAME=Cloud mocha test/system.test.js --timeout=180000",
     "lint": "eslint '**/*.js'",
     "fix": "eslint --fix '**/*.js'",
-    "build": "tsc;cpy --cwd=src --parents '**/*.json' ../build/"
+    "build": "tsc;cpy --cwd=src --parents '**/*.json' ../build/",
+    "deploy": "./deploy.sh --project"
   },
   "engines": {
     "node": "14"
