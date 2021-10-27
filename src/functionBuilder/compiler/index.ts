@@ -1,5 +1,6 @@
-import { addPackages, asyncExecute } from "./terminal";
+import { addPackages } from "./terminal";
 import { addExtensionLib } from "./extensions";
+import { asyncExecute } from "../../terminalUtils";
 import * as _ from "lodash";
 const fs = require("fs");
 import {

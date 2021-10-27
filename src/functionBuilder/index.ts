@@ -1,4 +1,4 @@
-import { asyncExecute } from "./compiler/terminal";
+import { asyncExecute } from "../terminalUtils";
 import {
   getCollectionType,
   getCollectionPath,

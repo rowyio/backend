@@ -1,7 +1,7 @@
 {
   "name": "rowy-run",
   "description": "cloud run instance for running Rowy's backend functionality",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "private": true,
   "main": "build/index.js",
   "scripts": {
@@ -22,13 +22,15 @@
   "dependencies": {
     "@google-cloud/bigquery": "^5.8.0",
     "@google-cloud/firestore": "^4.15.0",
+    "@google-cloud/logging": "^9.6.1",
     "@google-cloud/secret-manager": "^3.10.0",
     "algoliasearch": "^4.10.5",
     "axios": "^0.21.4",
     "cpy-cli": "^2.0.0",
     "express": "^4.17.1",
     "firebase-admin": "^9.11.1",
-    "firebase-functions": "^3.15.7"
+    "firebase-functions": "^3.15.7",
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "@types/express": "^4.17.13",

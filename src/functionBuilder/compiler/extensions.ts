@@ -1,6 +1,7 @@
 import admin from "firebase-admin";
 import { commandErrorHandler, logErrorToDB } from "../logger";
-import { addPackages, asyncExecute } from "./terminal";
+import { addPackages } from "./terminal";
+import { asyncExecute } from "../../terminalUtils";
 import { getExtension } from "../../rowyService";
 
 export const addExtensionLib = async (
