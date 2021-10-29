@@ -25,6 +25,19 @@ const missingFieldsReducer = (data: any) => (acc: string[], curr: string) => {
 
 const serverTimestamp = admin.firestore.FieldValue.serverTimestamp;
 
+export const authUser2rowyUser = (currentUser) => {
+  const { name, email, uid, email_verified, picture } = currentUser;
+
+  return {
+    timestamp: new Date(),
+    displayName: name,
+    email,
+    uid,
+    emailVerified: email_verified,
+    photoURL: picture,
+  };
+};
+
 export const actionScript = async (req: Request, res: Response) => {
   try {
     const user = res.locals.user;
@@ -67,15 +80,17 @@ export const actionScript = async (req: Request, res: Response) => {
       status: string;
       success: boolean;
     } = await eval(
-      `async({row,db, ref,auth,utilFns,actionParams,context})=>{${
+      `async({row,db, ref,auth,utilFns,actionParams,user})=>{${
         action === "undo" ? config["undo.script"] : script
       }}`
     )({
       row,
       db,
-      auth, // utilFns,
+      auth,
       ref: db.doc(ref.path),
-      actionParams, //context
+      actionParams,
+      user: authUser2rowyUser(user),
+      admin,
     });
     if (result.success || result.status) {
       const cellValue = {
