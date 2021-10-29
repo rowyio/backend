@@ -1,6 +1,6 @@
 import * as functions from "firebase-functions";
 import utilFns, { hasRequiredFields, getTriggerType } from "../utils";
-import { db, auth, storage } from "../firebaseConfig";
+import { db, auth, storage, admin } from "../firebaseConfig";
 
 const extension =
   (extensionConfig, fieldTypes) =>
@@ -32,6 +32,7 @@ const extension =
         utilFns,
         fieldTypes,
         storage,
+        admin,
       };
       if (!triggers.includes(triggerType)) return false; //check if trigger type is included in the extension
       if (
