@@ -67,7 +67,6 @@ export default async function generateConfig(
     `isFunctionConfigValid: ${JSON.stringify(isFunctionConfigValid)}`
   );
   await streamLogger.info(`configFile: ${JSON.stringify(configFile)}`);
-  let requiredDependencies = [];
   // sleep for a bit to insure file is ready
   await new Promise((resolve) => setTimeout(resolve, 100));
   const {
@@ -75,24 +74,33 @@ export default async function generateConfig(
     defaultValueConfig,
     extensionsConfig,
   } = require("../functions/src/functionConfig");
-  derivativesConfig.forEach((i) => {
-    if (i.requiredPackages && i.requiredPackages.length > 0) {
-      requiredDependencies = requiredDependencies.concat(i.requiredPackages);
+  const requiredDepsReducer = (acc, curr) => {
+    if (curr.requiredPackages && curr.requiredPackages.length > 0) {
+      return acc.concat(curr.requiredPackages);
     }
-  });
-  defaultValueConfig.forEach((i) => {
-    if (i.requiredPackages && i.requiredPackages.length > 0) {
-      requiredDependencies = requiredDependencies.concat(i.requiredPackages);
-    }
-  });
-  extensionsConfig.forEach((i) => {
-    if (i.requiredPackages && i.requiredPackages.length > 0) {
-      requiredDependencies = requiredDependencies.concat(i.requiredPackages);
-    }
-  });
-
+    return acc;
+  };
+  const derivativesRequiredDeps = derivativesConfig.reduce(
+    requiredDepsReducer,
+    []
+  );
+  const defaultValueRequiredDeps = defaultValueConfig.reduce(
+    requiredDepsReducer,
+    []
+  );
+  const extensionsRequiredDeps = extensionsConfig.reduce(
+    requiredDepsReducer,
+    []
+  );
   // remove duplicates from requiredDependencies with lodash
-  requiredDependencies = _.uniqWith(requiredDependencies, _.isEqual);
+  const requiredDependencies = _.uniqWith(
+    [
+      ...derivativesRequiredDeps,
+      ...defaultValueRequiredDeps,
+      ...extensionsRequiredDeps,
+    ],
+    _.isEqual
+  );
 
   if (requiredDependencies) {
     const packgesAdded = await addPackages(
