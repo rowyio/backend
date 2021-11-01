@@ -28,7 +28,7 @@ import { getAlgoliaSearchKey } from "./connectTable/algolia";
 
 import { metadataService, getProjectId } from "./metadataService";
 import { publishWebhooks, webhooksConsumer } from "./webhooks";
-import { getFunctionLogs } from "./logging";
+import { getLogs } from "./logging";
 const app = express();
 // json is the default content-type for POST requests
 app.use(express.json());
@@ -136,12 +136,7 @@ app.post(
   functionWrapper(functionBuilder)
 );
 
-app.get(
-  "/functionLogs/:functionName",
-  requireAuth,
-  hasAnyRole(["ADMIN"]),
-  functionWrapper(getFunctionLogs)
-);
+app.get("/logs", requireAuth, hasAnyRole(["ADMIN"]), functionWrapper(getLogs));
 
 // Webhooks
 app.post(
