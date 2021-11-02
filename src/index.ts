@@ -29,6 +29,7 @@ import { getAlgoliaSearchKey } from "./connectTable/algolia";
 import { metadataService, getProjectId } from "./metadataService";
 import { publishWebhooks, webhooksConsumer } from "./webhooks";
 import { getLogs } from "./logging";
+import { auditChange } from "./logging/auditChange";
 const app = express();
 // json is the default content-type for POST requests
 app.use(express.json());
@@ -167,6 +168,9 @@ app.get(
     }
   })
 );
+
+app.post("/auditChange", requireAuth, functionWrapper(auditChange));
+
 //SECRET MANAGEMENT
 // get secret
 
