@@ -13,9 +13,10 @@ export const setUserRoles = async (req: Request, res: Response) => {
       throw new Error("User does not exist");
     }
     const uid = userQuery.docs[0].id;
+    const existingCustomClaims = (await auth.getUser(uid))?.customClaims ?? {};
     await Promise.all([
       userQuery.docs[0].ref.update({ roles }),
-      auth.setCustomUserClaims(uid, { roles }),
+      auth.setCustomUserClaims(uid, { ...existingCustomClaims, roles }),
     ]);
     res.send({ success: true });
   } catch (error: any) {

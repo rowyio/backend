@@ -1,4 +1,3 @@
 /node_modules
 /build
-firebase-adminsdk.json
-firebase-adminsdk-*.json
+firebase-adminsdk*.json

@@ -27,6 +27,9 @@ import { db } from "./firebaseConfig";
 import { getAlgoliaSearchKey } from "./connectTable/algolia";
 
 import { metadataService, getProjectId } from "./metadataService";
+import { publishWebhooks, webhooksConsumer } from "./webhooks";
+import { getLogs } from "./logging";
+import { auditChange } from "./logging/auditChange";
 const app = express();
 // json is the default content-type for POST requests
 app.use(express.json());
@@ -56,6 +59,7 @@ const functionWrapper = (fn) => async (req, res) => {
     const data = await fn(req, user);
     res.status(200).send(data);
   } catch (error) {
+    console.error(error);
     res.status(500).send(error);
   }
 };
@@ -133,6 +137,16 @@ app.post(
   functionWrapper(functionBuilder)
 );
 
+app.get("/logs", requireAuth, hasAnyRole(["ADMIN"]), functionWrapper(getLogs));
+
+// Webhooks
+app.post(
+  "/publishWebhooks",
+  requireAuth,
+  hasAnyRole(["ADMIN"]),
+  functionWrapper(publishWebhooks)
+);
+app.post("/whs/:tablePath/:endpoint", webhooksConsumer);
 //metadata service
 app.get("/metadata", requireAuth, hasAnyRole(["ADMIN"]), metadataService);
 
@@ -154,6 +168,9 @@ app.get(
     }
   })
 );
+
+app.post("/auditChange", requireAuth, functionWrapper(auditChange));
+
 //SECRET MANAGEMENT
 // get secret
 
