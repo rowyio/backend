@@ -21,6 +21,7 @@ export const getProjectId = async () =>
 export const getNumericProjectId = async () =>
   (await axiosInstance.get("computeMetadata/v1/project/numeric-project-id"))
     .data;
+
 export const generateServiceAccessToken = async (audience) =>
   (
     await axiosInstance.get(
