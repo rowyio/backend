@@ -9,9 +9,6 @@
     "allow-unauthenticated": true,
     "memory": "2Gi"
   },
-  "build": {
-    "skip": true
-  },
 
   "hooks": {
     "prebuild": {
