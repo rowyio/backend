@@ -57,7 +57,6 @@ export const migrateFT2Rowy = async () => {
     };
   });
   await db.doc(ROWY_SETTINGS).set({ tables: newTables }, { merge: true });
-
   const tables = await db.collection(FT_TABLE_SCHEMAS).get();
   const groupTables = await db.collection(FT_GROUP_TABLE_SCHEMAS).get();
   const promises = [
@@ -75,6 +74,13 @@ export const migrateFT2Rowy = async () => {
     ),
   ];
   await Promise.all(promises);
+  const subtables = await db.collectionGroup("subTables").get();
+  const addedSubtables = subtables.docs.map((subtable) => {
+    return db
+      .doc(subtable.ref.path.replace("_FIRETABLE_", "_rowy_"))
+      .set(subtable.data());
+  });
+  await Promise.all(addedSubtables);
   await db.doc(ROWY_SETTINGS).update({ migratedToV2: true });
   return { success: true };
 };

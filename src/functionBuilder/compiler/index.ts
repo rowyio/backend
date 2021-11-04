@@ -1,5 +1,6 @@
-import { addPackages, asyncExecute } from "./terminal";
+import { addPackages } from "./terminal";
 import { addExtensionLib } from "./extensions";
+import { asyncExecute } from "../../terminalUtils";
 import * as _ from "lodash";
 const fs = require("fs");
 import {
@@ -66,31 +67,48 @@ export default async function generateConfig(
     `isFunctionConfigValid: ${JSON.stringify(isFunctionConfigValid)}`
   );
   await streamLogger.info(`configFile: ${JSON.stringify(configFile)}`);
-  let requiredDependencies = [];
-  const appendDependencies = (i) => {
-    if (i.requiredPackages && i.requiredPackages.length > 0) {
-      requiredDependencies = requiredDependencies.concat(i.requiredPackages);
-    }
-  };
+  // sleep for a bit to insure file is ready
+  await new Promise((resolve) => setTimeout(resolve, 100));
   const {
     derivativesConfig,
     defaultValueConfig,
     extensionsConfig,
   } = require("../functions/src/functionConfig");
-  derivativesConfig.forEach(appendDependencies);
-  defaultValueConfig.forEach(appendDependencies);
-  extensionsConfig.forEach(appendDependencies);
-
+  const requiredDepsReducer = (acc, curr) => {
+    if (curr.requiredPackages && curr.requiredPackages.length > 0) {
+      return acc.concat(curr.requiredPackages);
+    }
+    return acc;
+  };
+  const derivativesRequiredDeps = derivativesConfig.reduce(
+    requiredDepsReducer,
+    []
+  );
+  const defaultValueRequiredDeps = defaultValueConfig.reduce(
+    requiredDepsReducer,
+    []
+  );
+  const extensionsRequiredDeps = extensionsConfig.reduce(
+    requiredDepsReducer,
+    []
+  );
   // remove duplicates from requiredDependencies with lodash
-  requiredDependencies = _.uniqWith(requiredDependencies, _.isEqual);
+  const requiredDependencies = _.uniqWith(
+    [
+      ...derivativesRequiredDeps,
+      ...defaultValueRequiredDeps,
+      ...extensionsRequiredDeps,
+    ],
+    _.isEqual
+  );
 
   if (requiredDependencies) {
-    const packagesAdded = await addPackages(
+    const packgesAdded = await addPackages(
       requiredDependencies,
       user,
       streamLogger
     );
-    if (!packagesAdded) {
+    if (!packgesAdded) {
       return false;
     }
   }
@@ -109,5 +127,6 @@ export default async function generateConfig(
       return false;
     }
   }
+
   return true;
 }
