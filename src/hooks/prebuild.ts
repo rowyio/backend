@@ -17,26 +17,6 @@ async function start() {
   if (!projectId) {
     throw new Error("GOOGLE_CLOUD_PROJECT env variable is not set");
   }
-  asyncExecute(
-    "gcloud services list --project rowy-service",
-    (error, stdout, stderr) => {
-      /*
-    example output:
-    appengine.googleapis.com                App Engine Admin API
-bigquery.googleapis.com                 BigQuery API
-bigquerydatatransfer.googleapis.com     BigQuery Data Transfer API
-    */
-      // get the services list urls
-
-      const services = stdout.split("\n");
-      const servicesUrls = services.map((service) => {
-        return service.split(" ")[0];
-      });
-      if (!servicesUrls.includes("firestore.googleapis.com")) {
-        console.log("Missing Firestore");
-      }
-    }
-  );
   try {
     updateConfig("projectId", projectId);
     updateConfig("region", process.env.GOOGLE_CLOUD_REGION);
@@ -56,20 +36,6 @@ bigquerydatatransfer.googleapis.com     BigQuery Data Transfer API
     });
     throw new Error(`Rowy deployment failed: ${JSON.stringify(error)}`);
   }
-  console.log("deploy prebuilt image");
-  asyncExecute(
-    `gcloud run deploy rowy-run\
-          --project=tryrowy\
-          --platform=managed\
-          --region=us-central1\
-          --image=gcr.io/rowy-run/rowy-run\
-          --update-env-vars=ROWY_SECRET=test-secret==\
-          --allow-unauthenticated\
-          --memory=2Gi`,
-    () => {
-      console.log("deployed");
-    }
-  );
 }
 
 start();
