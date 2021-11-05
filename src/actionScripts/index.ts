@@ -2,6 +2,7 @@ import * as _ from "lodash";
 import { db, auth } from "../firebaseConfig";
 import * as admin from "firebase-admin";
 import { Request, Response } from "express";
+import { User } from "../types/User";
 //TODO
 //import utilFns from "./utils";
 type ActionData = {
@@ -25,7 +26,7 @@ const missingFieldsReducer = (data: any) => (acc: string[], curr: string) => {
 
 const serverTimestamp = admin.firestore.FieldValue.serverTimestamp;
 
-export const authUser2rowyUser = (currentUser) => {
+export const authUser2rowyUser = (currentUser: User, data?: any) => {
   const { name, email, uid, email_verified, picture } = currentUser;
 
   return {
@@ -35,6 +36,7 @@ export const authUser2rowyUser = (currentUser) => {
     uid,
     emailVerified: email_verified,
     photoURL: picture,
+    ...data,
   };
 };
 
@@ -46,11 +48,7 @@ export const actionScript = async (req: Request, res: Response) => {
       throw new Error("User has no roles");
     const { ref, actionParams, column, action, schemaDocPath }: ActionData =
       req.body;
-    const [schemaDoc, rowQuery] = await Promise.all([
-      db.doc(schemaDocPath).get(),
-      db.doc(ref.path).get(),
-    ]);
-    const row = rowQuery.data();
+    const schemaDoc = await db.doc(schemaDocPath).get();
     const schemaDocData = schemaDoc.data();
     if (!schemaDocData) {
       return res.send({
@@ -66,7 +64,14 @@ export const actionScript = async (req: Request, res: Response) => {
     if (!requiredRoles.some((role) => userRoles.includes(role))) {
       throw Error(`You don't have the required roles permissions`);
     }
+    const _actionScript = eval(
+      `async({row,db, ref,auth,utilFns,actionParams,user})=>{${
+        action === "undo" ? config["undo.script"] : script
+      }}`
+    );
 
+    const [rowSnapshot] = await Promise.all([db.doc(ref.path).get()]);
+    const row = rowSnapshot.data();
     const missingRequiredFields = requiredFields
       ? requiredFields.reduce(missingFieldsReducer(row), [])
       : [];
@@ -79,11 +84,7 @@ export const actionScript = async (req: Request, res: Response) => {
       message: string;
       status: string;
       success: boolean;
-    } = await eval(
-      `async({row,db, ref,auth,utilFns,actionParams,user})=>{${
-        action === "undo" ? config["undo.script"] : script
-      }}`
-    )({
+    } = await _actionScript({
       row,
       db,
       auth,
@@ -101,20 +102,13 @@ export const actionScript = async (req: Request, res: Response) => {
         undo: config["undo.enabled"],
       };
       try {
-        const userDoc = await db
-          .collection("/_rowy_/userManagement/users")
-          .doc(user.uid)
-          .get();
-        const userData = userDoc?.get("user");
-        await db.doc(ref.path).update({
-          [column.key]: cellValue,
-          _updatedBy: userData
-            ? {
-                ...userData,
-                timestamp: admin.firestore.FieldValue.serverTimestamp(),
-              }
-            : null,
-        });
+        const update = { [column.key]: cellValue };
+        if (schemaDocData?.audit !== false) {
+          update[
+            (schemaDocData?.auditFieldUpdatedBy as string) || "_updatedBy"
+          ] = authUser2rowyUser(user!, { updatedField: column.key });
+        }
+        await db.doc(ref.path).update(update);
       } catch (error) {
         // if actionScript code deletes the row, it will throw an error when updating the cell
         console.log(error);

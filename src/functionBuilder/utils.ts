@@ -1,5 +1,8 @@
 import admin from "firebase-admin";
-export function rowyUser(user: admin.auth.UserRecord) {
+export function rowyUser(
+  user: admin.auth.UserRecord,
+  data?: Record<string, any>
+) {
   return {
     displayName: user?.displayName,
     email: user?.email,
@@ -7,6 +10,7 @@ export function rowyUser(user: admin.auth.UserRecord) {
     emailVerified: user?.emailVerified,
     photoURL: user?.photoURL,
     timestamp: new Date(),
+    ...data,
   };
 }
 
