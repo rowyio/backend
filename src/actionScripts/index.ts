@@ -5,13 +5,15 @@ import { Request, Response } from "express";
 import { User } from "../types/User";
 //TODO
 //import utilFns from "./utils";
+type Ref = {
+  id: string;
+  path: string;
+  parentId: string;
+  tablePath: string;
+};
 type ActionData = {
-  ref: {
-    id: string;
-    path: string;
-    parentId: string;
-    tablePath: string;
-  };
+  refs?: Ref[]; // used in bulkAction
+  ref?: Ref;
   schemaDocPath?: string;
   column: any;
   action: "run" | "redo" | "undo";
@@ -46,8 +48,14 @@ export const actionScript = async (req: Request, res: Response) => {
     const userRoles = user.roles;
     if (!userRoles || userRoles.length === 0)
       throw new Error("User has no roles");
-    const { ref, actionParams, column, action, schemaDocPath }: ActionData =
-      req.body;
+    const {
+      refs,
+      ref,
+      actionParams,
+      column,
+      action,
+      schemaDocPath,
+    }: ActionData = req.body;
     const schemaDoc = await db.doc(schemaDocPath).get();
     const schemaDocData = schemaDoc.data();
     if (!schemaDocData) {
@@ -69,58 +77,75 @@ export const actionScript = async (req: Request, res: Response) => {
         action === "undo" ? config["undo.script"] : script
       }}`
     );
-
-    const [rowSnapshot] = await Promise.all([db.doc(ref.path).get()]);
-    const row = rowSnapshot.data();
-    const missingRequiredFields = requiredFields
-      ? requiredFields.reduce(missingFieldsReducer(row), [])
-      : [];
-    if (missingRequiredFields.length > 0) {
-      throw new Error(
-        `Missing required fields:${missingRequiredFields.join(", ")}`
-      );
-    }
-    const result: {
-      message: string;
-      status: string;
-      success: boolean;
-    } = await _actionScript({
-      row,
-      db,
-      auth,
-      ref: db.doc(ref.path),
-      actionParams,
-      user: authUser2rowyUser(user),
-      admin,
-    });
-    if (result.success || result.status) {
-      const cellValue = {
-        redo: result.success ? config["redo.enabled"] : true,
-        status: result.status,
-        completedAt: serverTimestamp(),
-        ranBy: user.email,
-        undo: config["undo.enabled"],
-      };
+    const getRows = refs
+      ? refs.map(async (r) => db.doc(r.path).get())
+      : [db.doc(ref.path).get()];
+    const rowSnapshots = await Promise.all(getRows);
+    const tasks = rowSnapshots.map(async (doc) => {
       try {
-        const update = { [column.key]: cellValue };
-        if (schemaDocData?.audit !== false) {
-          update[
-            (schemaDocData?.auditFieldUpdatedBy as string) || "_updatedBy"
-          ] = authUser2rowyUser(user!, { updatedField: column.key });
+        const row = doc.data();
+        const missingRequiredFields = requiredFields
+          ? requiredFields.reduce(missingFieldsReducer(row), [])
+          : [];
+        if (missingRequiredFields.length > 0) {
+          throw new Error(
+            `Missing required fields:${missingRequiredFields.join(", ")}`
+          );
         }
-        await db.doc(ref.path).update(update);
-      } catch (error) {
-        // if actionScript code deletes the row, it will throw an error when updating the cell
-        console.log(error);
+        const result: {
+          message: string;
+          status: string;
+          success: boolean;
+        } = await _actionScript({
+          row: row,
+          db,
+          auth,
+          ref: doc.ref,
+          actionParams,
+          user: authUser2rowyUser(user),
+          admin,
+        });
+        if (result.success || result.status) {
+          const cellValue = {
+            redo: result.success ? config["redo.enabled"] : true,
+            status: result.status,
+            completedAt: serverTimestamp(),
+            ranBy: user.email,
+            undo: config["undo.enabled"],
+          };
+          try {
+            const update = { [column.key]: cellValue };
+            if (schemaDocData?.audit !== false) {
+              update[
+                (schemaDocData?.auditFieldUpdatedBy as string) || "_updatedBy"
+              ] = authUser2rowyUser(user!, { updatedField: column.key });
+            }
+            await db.doc(ref.path).update(update);
+          } catch (error) {
+            // if actionScript code deletes the row, it will throw an error when updating the cell
+            console.log(error);
+          }
+          return {
+            ...result,
+          };
+        } else
+          return {
+            success: false,
+            message: result.message,
+          };
+      } catch (error: any) {
+        return {
+          success: false,
+          error,
+          message: error.message,
+        };
       }
-      return res.send({
-        ...result,
-      });
-    } else
-      return res.send({
-        success: false,
-        message: result.message,
-      });
+    });
+    const results = await Promise.all(tasks);
+    if (results.length === 1) {
+      return res.send(results[0]);
+    }
+    return res.send(results);
   } catch (error: any) {
     return res.send({
       success: false,
