@@ -17,6 +17,7 @@ export const metadataService = (req: Request, res: Response) => {
 };
 
 export const getProjectId = async () =>
+  //process.env.DEV? process.env.TEST_PROJECT_ID :
   (await axiosInstance.get("computeMetadata/v1/project/project-id")).data;
 export const getNumericProjectId = async () =>
   (await axiosInstance.get("computeMetadata/v1/project/numeric-project-id"))
