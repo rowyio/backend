@@ -8,5 +8,5 @@ if [[ $return_value == 0 ]]
 then
     echo "bucket exist"
 else
-    gsutil mb gs://rowy-cloud-run-bucket
+    gsutil mb gs://$1-rowy-run-bucket
 fi
