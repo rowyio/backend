@@ -16,5 +16,5 @@ data "google_project" "project" {
 locals {
   project = data.google_project.project.project_id
   service_name   = "rowy-run"
-  rowy_service_account  = "serviceAccount:${google_service_account.rowy_service_account.email}"
+  service_account  = "serviceAccount:${google_service_account.service_account.email}"
 }
