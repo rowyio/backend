@@ -38,8 +38,8 @@
     },
     "postcreate": {
       "commands": [
-        "cd build/hooks && node postcreate",
-        "gcloud run services update rowy-run --service-account rowy-sa@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com --platform managed"
+        "gcloud run services update rowy-run --service-account rowy-sa@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com --platform managed",
+        "cd build/hooks && node postcreate"
       ]
     }
   }
