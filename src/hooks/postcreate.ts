@@ -6,7 +6,7 @@ import { logError } from "./createRowyApp";
 import { execute } from "../terminalUtils";
 
 const applyServiceAccount = async () => {
-  execute("terraform -chdir=terraform output -json", (stdout) => {
+  execute("terraform -chdir=../../terraform output -json", (stdout) => {
     const output = JSON.parse(stdout);
     const serviceAccount = output.service_account_email.value;
     console.log({ serviceAccount });
