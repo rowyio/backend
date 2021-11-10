@@ -10,7 +10,7 @@ resource "google_service_account" "rowy_run_serviceAccount" {
 }
 resource "google_project_iam_binding" "roles" {
   project  = var.project_id
-  for_each = toset(["roles/logging.logWriter", "roles/logging.viewer", "roles/firebase.admin", "roles/iam.serviceAccountUser"])
+  for_each = toset(local.required_roles)
   role     = each.key
   members = [
     "serviceAccount:${google_service_account.rowy_run_serviceAccount.email}",
