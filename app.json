@@ -23,24 +23,16 @@
 
         "gcloud config set project $GOOGLE_CLOUD_PROJECT",
         "gcloud config set run/region $GOOGLE_CLOUD_REGION",
-        "sudo chmod +x ./create_bucket.sh",
-        "sudo ./create_bucket.sh $GOOGLE_CLOUD_PROJECT",
 
         "terraform -chdir=terraform init",
-        "terraform -chdir=terraform state pull",
-        "terraform -chdir=terraform import google_app_engine_application.app $GOOGLE_CLOUD_PROJECT",
-        "terraform -chdir=terraform import google_firebase_project.default $GOOGLE_CLOUD_PROJECT",
-        "terraform -chdir=terraform apply -auto-approve -var region=$GOOGLE_CLOUD_REGION",
+        "terraform -chdir=terraform apply -auto-approve -var project_id=$GOOGLE_CLOUD_PROJECT",
         "npm install",
         "npm run build",
         "cd build/hooks && node prebuild"
       ]
     },
     "postcreate": {
-      "commands": [
-        "gcloud run services update rowy-run --service-account rowy-service-account@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com --platform managed",
-        "cd build/hooks && node postcreate"
-      ]
+      "commands": ["cd build/hooks && node postcreate"]
     }
   }
 }
