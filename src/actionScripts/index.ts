@@ -47,7 +47,7 @@ export const actionScript = async (req: Request, res: Response) => {
     const user = res.locals.user;
     const userRoles = user.roles;
     if (!userRoles || userRoles.length === 0)
-      throw new Error("User has no roles");
+      throw new Error("User has no assigned roles");
     const {
       refs,
       ref,
@@ -102,7 +102,7 @@ export const actionScript = async (req: Request, res: Response) => {
           auth,
           ref: doc.ref,
           actionParams,
-          user: authUser2rowyUser(user),
+          user: { ...authUser2rowyUser(user), roles: userRoles },
           admin,
         });
         if (result.success || result.status) {
