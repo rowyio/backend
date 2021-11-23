@@ -27,7 +27,6 @@ import { db } from "./firebaseConfig";
 import { getAlgoliaSearchKey } from "./connectTable/algolia";
 
 import { metadataService, getProjectId } from "./metadataService";
-import { publishWebhooks, webhooksConsumer } from "./webhooks";
 import { getLogs } from "./logging";
 import { auditChange } from "./logging/auditChange";
 const app = express();
