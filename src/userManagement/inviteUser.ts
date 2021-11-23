@@ -36,7 +36,11 @@ export const inviteUser = async (req: Request, res: Response) => {
       });
     }
     // roles
-    await auth.setCustomUserClaims(user.uid, { roles });
+    const existingCustomClaims = user.customClaims ?? {};
+    await auth.setCustomUserClaims(user.uid, {
+      ...existingCustomClaims,
+      roles,
+    });
     // send email
     const resp = await httpsPost({
       hostname: "rowy.run",

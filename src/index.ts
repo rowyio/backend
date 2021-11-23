@@ -27,7 +27,6 @@ import { db } from "./firebaseConfig";
 import { getAlgoliaSearchKey } from "./connectTable/algolia";
 
 import { metadataService, getProjectId } from "./metadataService";
-import { publishWebhooks, webhooksConsumer } from "./webhooks";
 import { getLogs } from "./logging";
 import { auditChange } from "./logging/auditChange";
 const app = express();
@@ -139,14 +138,6 @@ app.post(
 
 app.get("/logs", requireAuth, hasAnyRole(["ADMIN"]), functionWrapper(getLogs));
 
-// Webhooks
-app.post(
-  "/publishWebhooks",
-  requireAuth,
-  hasAnyRole(["ADMIN"]),
-  functionWrapper(publishWebhooks)
-);
-app.post("/whs/:tablePath/:endpoint", webhooksConsumer);
 //metadata service
 app.get("/metadata", requireAuth, hasAnyRole(["ADMIN"]), metadataService);
 

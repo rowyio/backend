@@ -9,14 +9,16 @@ import {
   extensionsConfig,
   defaultValueConfig,
   fieldTypes,
+  region,
 } from "./functionConfig";
 
 import { getTriggerType, changedDocPath } from "./utils";
 import propagate from "./propagates";
 import initialize from "./initialize";
 export const R = {
-  [functionName]: functions.firestore
-    .document(triggerPath)
+  [functionName]: functions
+    .region(region ?? "us-central1")
+    .firestore.document(triggerPath)
     .onWrite(async (change, context) => {
       const triggerType = getTriggerType(change);
       let promises: Promise<any>[] = [];

@@ -2,15 +2,18 @@ import * as _ from "lodash";
 import { db, auth } from "../firebaseConfig";
 import * as admin from "firebase-admin";
 import { Request, Response } from "express";
+import { User } from "../types/User";
 //TODO
 //import utilFns from "./utils";
+type Ref = {
+  id: string;
+  path: string;
+  parentId: string;
+  tablePath: string;
+};
 type ActionData = {
-  ref: {
-    id: string;
-    path: string;
-    parentId: string;
-    tablePath: string;
-  };
+  refs?: Ref[]; // used in bulkAction
+  ref?: Ref;
   schemaDocPath?: string;
   column: any;
   action: "run" | "redo" | "undo";
@@ -25,7 +28,7 @@ const missingFieldsReducer = (data: any) => (acc: string[], curr: string) => {
 
 const serverTimestamp = admin.firestore.FieldValue.serverTimestamp;
 
-export const authUser2rowyUser = (currentUser) => {
+export const authUser2rowyUser = (currentUser: User, data?: any) => {
   const { name, email, uid, email_verified, picture } = currentUser;
 
   return {
@@ -35,6 +38,7 @@ export const authUser2rowyUser = (currentUser) => {
     uid,
     emailVerified: email_verified,
     photoURL: picture,
+    ...data,
   };
 };
 
@@ -43,14 +47,16 @@ export const actionScript = async (req: Request, res: Response) => {
     const user = res.locals.user;
     const userRoles = user.roles;
     if (!userRoles || userRoles.length === 0)
-      throw new Error("User has no roles");
-    const { ref, actionParams, column, action, schemaDocPath }: ActionData =
-      req.body;
-    const [schemaDoc, rowQuery] = await Promise.all([
-      db.doc(schemaDocPath).get(),
-      db.doc(ref.path).get(),
-    ]);
-    const row = rowQuery.data();
+      throw new Error("User has no assigned roles");
+    const {
+      refs,
+      ref,
+      actionParams,
+      column,
+      action,
+      schemaDocPath,
+    }: ActionData = req.body;
+    const schemaDoc = await db.doc(schemaDocPath).get();
     const schemaDocData = schemaDoc.data();
     if (!schemaDocData) {
       return res.send({
@@ -66,67 +72,80 @@ export const actionScript = async (req: Request, res: Response) => {
     if (!requiredRoles.some((role) => userRoles.includes(role))) {
       throw Error(`You don't have the required roles permissions`);
     }
-
-    const missingRequiredFields = requiredFields
-      ? requiredFields.reduce(missingFieldsReducer(row), [])
-      : [];
-    if (missingRequiredFields.length > 0) {
-      throw new Error(
-        `Missing required fields:${missingRequiredFields.join(", ")}`
-      );
-    }
-    const result: {
-      message: string;
-      status: string;
-      success: boolean;
-    } = await eval(
+    const _actionScript = eval(
       `async({row,db, ref,auth,utilFns,actionParams,user})=>{${
         action === "undo" ? config["undo.script"] : script
       }}`
-    )({
-      row,
-      db,
-      auth,
-      ref: db.doc(ref.path),
-      actionParams,
-      user: authUser2rowyUser(user),
-      admin,
-    });
-    if (result.success || result.status) {
-      const cellValue = {
-        redo: result.success ? config["redo.enabled"] : true,
-        status: result.status,
-        completedAt: serverTimestamp(),
-        ranBy: user.email,
-        undo: config["undo.enabled"],
-      };
+    );
+    const getRows = refs
+      ? refs.map(async (r) => db.doc(r.path).get())
+      : [db.doc(ref.path).get()];
+    const rowSnapshots = await Promise.all(getRows);
+    const tasks = rowSnapshots.map(async (doc) => {
       try {
-        const userDoc = await db
-          .collection("/_rowy_/userManagement/users")
-          .doc(user.uid)
-          .get();
-        const userData = userDoc?.get("user");
-        await db.doc(ref.path).update({
-          [column.key]: cellValue,
-          _updatedBy: userData
-            ? {
-                ...userData,
-                timestamp: admin.firestore.FieldValue.serverTimestamp(),
-              }
-            : null,
+        const row = doc.data();
+        const missingRequiredFields = requiredFields
+          ? requiredFields.reduce(missingFieldsReducer(row), [])
+          : [];
+        if (missingRequiredFields.length > 0) {
+          throw new Error(
+            `Missing required fields:${missingRequiredFields.join(", ")}`
+          );
+        }
+        const result: {
+          message: string;
+          status: string;
+          success: boolean;
+        } = await _actionScript({
+          row: row,
+          db,
+          auth,
+          ref: doc.ref,
+          actionParams,
+          user: { ...authUser2rowyUser(user), roles: userRoles },
+          admin,
         });
-      } catch (error) {
-        // if actionScript code deletes the row, it will throw an error when updating the cell
-        console.log(error);
+        if (result.success || result.status) {
+          const cellValue = {
+            redo: result.success ? config["redo.enabled"] : true,
+            status: result.status,
+            completedAt: serverTimestamp(),
+            ranBy: user.email,
+            undo: config["undo.enabled"],
+          };
+          try {
+            const update = { [column.key]: cellValue };
+            if (schemaDocData?.audit !== false) {
+              update[
+                (schemaDocData?.auditFieldUpdatedBy as string) || "_updatedBy"
+              ] = authUser2rowyUser(user!, { updatedField: column.key });
+            }
+            await db.doc(ref.path).update(update);
+          } catch (error) {
+            // if actionScript code deletes the row, it will throw an error when updating the cell
+            console.log(error);
+          }
+          return {
+            ...result,
+          };
+        } else
+          return {
+            success: false,
+            message: result.message,
+          };
+      } catch (error: any) {
+        return {
+          success: false,
+          error,
+          message: error.message,
+        };
       }
-      return res.send({
-        ...result,
-      });
-    } else
-      return res.send({
-        success: false,
-        message: result.message,
-      });
+    });
+    const results = await Promise.all(tasks);
+    if (results.length === 1) {
+      return res.send(results[0]);
+    }
+    return res.send(results);
   } catch (error: any) {
     return res.send({
       success: false,
