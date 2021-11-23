@@ -139,14 +139,6 @@ app.post(
 
 app.get("/logs", requireAuth, hasAnyRole(["ADMIN"]), functionWrapper(getLogs));
 
-// Webhooks
-app.post(
-  "/publishWebhooks",
-  requireAuth,
-  hasAnyRole(["ADMIN"]),
-  functionWrapper(publishWebhooks)
-);
-app.post("/whs/:tablePath/:endpoint", webhooksConsumer);
 //metadata service
 app.get("/metadata", requireAuth, hasAnyRole(["ADMIN"]), metadataService);
 
