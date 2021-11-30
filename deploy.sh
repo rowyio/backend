@@ -1,5 +1,5 @@
 #!/bin/bash
-name=rowy-run
+name=rowy-backend
 helpFunction()
 {
    echo "Usage: ./deploy.sh --project [YOUR GCLOUD PROJECT ID]"
