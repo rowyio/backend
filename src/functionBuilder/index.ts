@@ -35,16 +35,20 @@ export const functionBuilder = async (
     pathname,
     tables
   );
-  const functionName = getFunctionName(collectionType, collectionPath);
+  const table = tables.find((t: any) => t.collection === tablePath);
+  const functionName = getFunctionName(
+    collectionType,
+    collectionPath,
+    table.triggerDepth
+  );
   const functionConfigPath = `_rowy_/settings/functions/${functionName}`;
   const streamLogger = await createStreamLogger(functionConfigPath);
   await streamLogger.info("streamLogger created");
   try {
-    const table = tables.find((t: any) => t.path === tablePath);
     const triggerPath = getTriggerPath(
       collectionType,
       collectionPath,
-      table?.depth
+      table?.triggerDepth
     );
     const tableSchemaPaths = getSchemaPaths({
       collectionType,

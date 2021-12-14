@@ -80,6 +80,8 @@ export default async function generateConfig(
     }
     return acc;
   };
+  // sleep for a bit to insure file is ready
+  await new Promise((resolve) => setTimeout(resolve, 100));
   const derivativesRequiredDeps = derivativesConfig.reduce(
     requiredDepsReducer,
     []

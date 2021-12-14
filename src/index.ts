@@ -40,9 +40,9 @@ app.get("/", async (req, res) => {
   try {
     const settingsDoc = await db.doc(`_rowy_/settings`).get();
     const rowyRunUrl = settingsDoc.get("rowyRunUrl");
-    const setupCompleted = settingsDoc.get("setupCompleted");
+    const setupCompleted = settingsDoc.get("rowyRunBuildStatus") === "COMPLETE";
     if (setupCompleted) {
-      res.send(`Rowy Run is setup successfully`);
+      res.redirect(`https://${projectId}.rowy.app`);
     } else {
       res.redirect(
         `https://${projectId}.rowy.app/setup?rowyRunUrl=${rowyRunUrl}`

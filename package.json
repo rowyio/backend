@@ -1,7 +1,7 @@
 {
-  "name": "rowy-run",
+  "name": "rowy-backend",
   "description": "cloud run instance for running Rowy's backend functionality",
-  "version": "1.1.0",
+  "version": "1.2.1",
   "private": true,
   "main": "build/index.js",
   "scripts": {

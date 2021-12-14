@@ -1,10 +1,9 @@
 import { auth, db } from "../firebaseConfig";
-import * as admin from "firebase-admin";
 import { Request, Response } from "express";
 import { rowyUsers } from "../constants/Collections";
-import { httpsPost } from "../utils";
 import { getProjectId } from "../metadataService";
 import { User } from "../types/User";
+import { inviteUserService } from "../rowyService";
 
 const getFirebaseAuthUser = async (email: string) => {
   try {
@@ -42,29 +41,17 @@ export const inviteUser = async (req: Request, res: Response) => {
       roles,
     });
     // send email
-    const resp = await httpsPost({
-      hostname: "rowy.run",
-      path: `/inviteUser`,
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: {
-        projectId,
-        secret: process.env.ROWY_SECRET,
-        newUser: {
-          email,
-          uid: user.uid,
-          roles,
-        },
-        inviter: {
-          email: inviterUser.email,
-          uid: inviterUser.uid,
-          name: inviterUser.name,
-        },
-      },
-    });
-    console.log(resp);
+    const newUser = {
+      email,
+      uid: user.uid,
+      roles,
+    };
+    const inviter = {
+      email: inviterUser.email,
+      uid: inviterUser.uid,
+      name: inviterUser.name,
+    };
+    await inviteUserService(projectId, newUser, inviter);
     return res.send({ success: true });
   } catch (error: any) {
     return res.send({ error: error.message });
