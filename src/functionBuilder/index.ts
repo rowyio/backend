@@ -16,118 +16,129 @@ export const functionBuilder = async (
   req: any,
   user: firebase.auth.UserRecord
 ) => {
-  if (isBuilding) {
-    return { success: false, message: `another build currently in progress` };
-  } else {
-    isBuilding = true;
-  }
-  const { tablePath, tableConfigPath } = req.body;
-  const pathname = req.body.pathname.substring(1);
-  if (!pathname || !tablePath)
-    return { success: false, message: `missing pathname or tablePath` };
-  // get settings Document
-  const settings = await db.doc(`_rowy_/settings`).get();
-  const tables = settings.get("tables");
-  const collectionType = getCollectionType(pathname);
-  const collectionPath = getCollectionPath(
-    collectionType,
-    tablePath,
-    pathname,
-    tables
-  );
-  const table = tables.find((t: any) => t.collection === tablePath);
-  const functionName = getFunctionName(
-    collectionType,
-    collectionPath,
-    table.triggerDepth
-  );
-  const functionConfigPath = `_rowy_/settings/functions/${functionName}`;
-  const streamLogger = await createStreamLogger(functionConfigPath);
-  await streamLogger.info("streamLogger created");
   try {
-    const triggerPath = getTriggerPath(
+    if (isBuilding) {
+      return { success: false, message: `another build currently in progress` };
+    } else {
+      isBuilding = true;
+    }
+    const { tablePath, tableConfigPath } = req.body;
+    const pathname = req.body.pathname.substring(1);
+    if (!pathname || !tablePath)
+      return { success: false, message: `missing pathname or tablePath` };
+    // get settings Document
+    const settings = await db.doc(`_rowy_/settings`).get();
+    const tables = settings.get("tables");
+    const collectionType = getCollectionType(pathname);
+    const collectionPath = getCollectionPath(
+      collectionType,
+      tablePath,
+      pathname,
+      tables
+    );
+    console.log({ collectionPath });
+    const table = tables.find((t: any) => t.collection === tablePath);
+    const functionName = getFunctionName(
       collectionType,
       collectionPath,
       table?.triggerDepth
     );
-    const tableSchemaPaths = getSchemaPaths({
-      collectionType,
-      collectionPath,
-      tables,
-      tableConfigPath,
-    });
-    const projectId = process.env.DEV
-      ? require("../../firebase-adminsdk.json").project_id
-      : await getProjectId();
-    console.log({
-      projectId,
-      collectionType,
-      collectionPath,
-      triggerPath,
-      functionName,
-      functionConfigPath,
-      tablePath,
-      tableConfigPath,
-      tableSchemaPaths,
-    });
-    await Promise.all([
-      db
-        .doc(functionConfigPath)
-        .set({ updatedAt: new Date() }, { merge: true }),
-      db.doc(tableConfigPath).update({
-        functionConfigPath,
-      }),
-    ]);
-
-    const success = await generateConfig(
-      {
-        functionConfigPath,
-        tableSchemaPaths,
-        functionName,
+    const functionConfigPath = `_rowy_/settings/functions/${functionName}`;
+    const streamLogger = await createStreamLogger(functionConfigPath);
+    await streamLogger.info("streamLogger created");
+    try {
+      const triggerPath = getTriggerPath(
+        collectionType,
+        collectionPath,
+        table?.triggerDepth
+      );
+      const tableSchemaPaths = getSchemaPaths({
+        collectionType,
+        collectionPath,
+        tables,
+        tableConfigPath,
+      });
+      console.log({ triggerPath });
+      const projectId = process.env.DEV
+        ? require("../../firebase-adminsdk.json").project_id
+        : await getProjectId();
+      console.log({
+        projectId,
+        collectionType,
+        collectionPath,
         triggerPath,
-      },
-      user,
-      streamLogger
-    );
-    if (!success) {
-      await streamLogger.error("generateConfig failed to complete");
+        functionName,
+        functionConfigPath,
+        tablePath,
+        tableConfigPath,
+        tableSchemaPaths,
+      });
+      await Promise.all([
+        db
+          .doc(functionConfigPath)
+          .set({ updatedAt: new Date() }, { merge: true }),
+        db.doc(tableConfigPath).update({
+          functionConfigPath,
+        }),
+      ]);
+
+      const success = await generateConfig(
+        {
+          functionConfigPath,
+          tableSchemaPaths,
+          functionName,
+          triggerPath,
+        },
+        user,
+        streamLogger
+      );
+      if (!success) {
+        await streamLogger.error("generateConfig failed to complete");
+        await streamLogger.fail();
+        return {
+          success: false,
+          reason: `generateConfig failed to complete`,
+        };
+      }
+      await streamLogger.info("generateConfig success");
+
+      await asyncExecute(
+        `cd build/functionBuilder/functions; \
+     yarn install`,
+        commandErrorHandler({ user }, streamLogger)
+      );
+
+      streamLogger.info(`deploying ${functionName} to ${projectId}`);
+      await asyncExecute(
+        `cd build/functionBuilder/functions; \
+       yarn deploy \
+        --project ${projectId} \
+        --only functions`,
+        commandErrorHandler({ user }, streamLogger)
+      );
+      isBuilding = false;
+      await streamLogger.end();
+      return {
+        success: true,
+      };
+    } catch (error) {
+      isBuilding = false;
+      console.log(error);
+      await streamLogger.error(
+        "Function Builder Failed:\n" + JSON.stringify(error)
+      );
       await streamLogger.fail();
       return {
         success: false,
         reason: `generateConfig failed to complete`,
       };
     }
-    await streamLogger.info("generateConfig success");
-
-    await asyncExecute(
-      `cd build/functionBuilder/functions; \
-     yarn install`,
-      commandErrorHandler({ user }, streamLogger)
-    );
-
-    streamLogger.info(`deploying ${functionName} to ${projectId}`);
-    await asyncExecute(
-      `cd build/functionBuilder/functions; \
-       yarn deploy \
-        --project ${projectId} \
-        --only functions`,
-      commandErrorHandler({ user }, streamLogger)
-    );
-    isBuilding = false;
-    await streamLogger.end();
-    return {
-      success: true,
-    };
   } catch (error) {
     isBuilding = false;
     console.log(error);
-    await streamLogger.error(
-      "Function Builder Failed:\n" + JSON.stringify(error)
-    );
-    await streamLogger.fail();
     return {
       success: false,
-      reason: `generateConfig failed to complete`,
+      reason: `function builder failed`,
     };
   }
 };
