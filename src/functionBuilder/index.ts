@@ -116,6 +116,15 @@ export const functionBuilder = async (
         --only functions`,
         commandErrorHandler({ user }, streamLogger)
       );
+      // remove config file
+      await asyncExecute(
+        `rm build/functionBuilder/functions/src/functionConfig.ts`,
+        commandErrorHandler({ user }, streamLogger)
+      );
+      await asyncExecute(
+        `rm build/functionBuilder/functions/src/functionConfig.js`,
+        commandErrorHandler({ user }, streamLogger)
+      );
       isBuilding = false;
       await streamLogger.end();
       return {
