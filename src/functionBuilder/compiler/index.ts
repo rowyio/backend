@@ -51,7 +51,7 @@ export default async function generateConfig(
     "utf-8"
   );
   const isFunctionConfigValid = await asyncExecute(
-    "cd build/functionBuilder/functions/src; tsc functionConfig.ts",
+    "cd build/functionBuilder/functions/src;npx tsc functionConfig.ts",
     commandErrorHandler(
       {
         user,

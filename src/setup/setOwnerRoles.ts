@@ -5,8 +5,10 @@ export const setOwnerRoles = async (req: Request, res: Response) => {
     const userManagementDoc = await db.doc("_rowy_/userManagement").get();
     const userToken = res.locals.user;
     const user = await auth.getUser(userToken.uid);
-    const ownerEmail = userManagementDoc.get("owner.email");
-    if (user.email !== ownerEmail)
+    const ownerEmail: string = userManagementDoc
+      .get("owner.email")
+      .toLowerCase();
+    if (user.email.toLowerCase() !== ownerEmail)
       return res.send({
         success: false,
         message: "Logged in user is not the owner",
