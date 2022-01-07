@@ -9,7 +9,9 @@ export const listCollections = async (req: Request) => {
     return collections.map((collection) => collection.id);
   } else {
     const collections = await db.listCollections();
-    return collections.map((collection) => collection.id);
+    return collections
+      .map((collection) => collection.id)
+      .filter((id) => id !== "_rowy_");
   }
 };
 
