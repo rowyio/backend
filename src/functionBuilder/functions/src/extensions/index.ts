@@ -19,6 +19,7 @@ const extension =
         triggers,
         conditions,
         requiredFields,
+        listenerFields,
         extensionBody,
       } = extensionConfig;
       const extensionContext = {
@@ -35,6 +36,12 @@ const extension =
         admin,
       };
       if (!triggers.includes(triggerType)) return false; //check if trigger type is included in the extension
+      if (
+        triggerType === "update" &&
+        listenerFields?.length > 0 &&
+        !utilFns.hasChanged(change)(listenerFields)
+      )
+        return false;
       if (
         triggerType !== "delete" &&
         requiredFields &&

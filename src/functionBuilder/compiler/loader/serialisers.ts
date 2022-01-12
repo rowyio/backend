@@ -26,6 +26,9 @@ export const serialiseExtension = (extensions: IExtension[]): string =>
           requiredFields: [${extension.requiredFields
             .map((field) => `"${field}"`)
             .join(", ")}],
+          listenerFields: [${extension.listenerFields
+            .map((field) => `"${field}"`)
+            .join(", ")}],
             requiredPackages:${JSON.stringify(
               getRequiredPackages(extension.extensionBody)
             )},
