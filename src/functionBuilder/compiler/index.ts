@@ -51,7 +51,7 @@ export default async function generateConfig(
     "utf-8"
   );
   const isFunctionConfigValid = await asyncExecute(
-    "cd build/functionBuilder/functions/src;npx tsc functionConfig.ts",
+    "cd build/functionBuilder/functions/src;tsc functionConfig.ts",
     commandErrorHandler(
       {
         user,
@@ -105,12 +105,12 @@ export default async function generateConfig(
   );
 
   if (requiredDependencies) {
-    const packgesAdded = await addPackages(
+    const packagesAdded = await addPackages(
       requiredDependencies,
       user,
       streamLogger
     );
-    if (!packgesAdded) {
+    if (!packagesAdded) {
       return false;
     }
   }

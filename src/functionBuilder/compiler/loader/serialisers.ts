@@ -24,10 +24,10 @@ export const serialiseExtension = (extensions: IExtension[]): string =>
             .replace(/^.*:\s*Condition\s*=/, "")
             .replace(/\s*;\s*$/, "")},
           requiredFields: [${extension.requiredFields
-            .map((field) => `"${field}"`)
+            ?.map((field) => `"${field}"`)
             .join(", ")}],
             trackedFields: [${extension.trackedFields
-              .map((field) => `"${field}"`)
+              ?.map((field) => `"${field}"`)
               .join(", ")}],
             requiredPackages:${JSON.stringify(
               getRequiredPackages(extension.extensionBody)
