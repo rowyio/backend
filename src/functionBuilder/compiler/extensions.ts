@@ -27,7 +27,7 @@ export const addExtensionLib = async (
       extension
     );
     await asyncExecute(
-      `cd build/functionBuilder/functions/src/extensions; tsc ${name}.ts`,
+      `cd build/functionBuilder/functions/src/extensions;tsc ${name}.ts`,
       commandErrorHandler(
         {
           user,

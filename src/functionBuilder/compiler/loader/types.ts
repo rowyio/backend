@@ -28,6 +28,7 @@ export interface IExtension {
   triggers: IExtensionTrigger[];
   type: IExtensionType;
   requiredFields: string[];
+  trackedFields?: string[];
   extensionBody: string;
   conditions: string;
 }
