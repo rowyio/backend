@@ -1,4 +1,4 @@
-import * as _ from "lodash";
+import _get from "lodash/get";
 import { db, auth } from "../firebaseConfig";
 import * as admin from "firebase-admin";
 import { Request, Response } from "express";
@@ -74,7 +74,7 @@ export const actionScript = async (req: Request, res: Response) => {
     }
     const _actionScript = eval(
       `async({row,db, ref,auth,utilFns,actionParams,user})=>{${
-        action === "undo" ? config["undo.script"] : script
+        action === "undo" ? _get(config, "undo.script") : script
       }}`
     );
     const getRows = refs
@@ -107,11 +107,9 @@ export const actionScript = async (req: Request, res: Response) => {
         });
         if (result.success || result.status) {
           const cellValue = {
-            redo: result.success ? config["redo.enabled"] : true,
             status: result.status,
             completedAt: serverTimestamp(),
             ranBy: user.email,
-            undo: config["undo.enabled"],
           };
           try {
             const update = { [column.key]: cellValue };
