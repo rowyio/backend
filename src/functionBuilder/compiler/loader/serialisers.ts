@@ -1,11 +1,27 @@
 import { IExtension } from "./types";
+const getRequires = (code: string) =>
+  code.match(/(?<=((= |=)require\(("|')))[^.].*?(?=("|')\))/g);
+const isGloballyScoped = (dependency: string) => !dependency.startsWith("@");
+const removeVersion = (dependency: string) =>
+  isGloballyScoped(dependency)
+    ? dependency.split("@")[0]
+    : dependency.split(/(@[^@]*)/)[1] ?? dependency;
+const getPackageName = (dependency: string) =>
+  isGloballyScoped(dependency)
+    ? removeVersion(dependency).split("/")[0]
+    : removeVersion(dependency).split("/").splice(0, 2).join("/");
 
+const getVersion = (dependency: string) => {
+  const sections = dependency.split("@");
+  const index = isGloballyScoped(dependency) ? 1 : 2;
+  return sections[index] ?? "latest";
+};
 const getRequiredPackages = (code: string) =>
   code
-    ? code.match(/(?<=(require\(("|')))[^.].*?(?=("|')\))/g)?.map((p) => {
-        const [name, version] = p.split("@");
-        return { name, version: version ?? "latest" };
-      }) ?? []
+    ? getRequires(code).map((req) => ({
+        name: getPackageName(req),
+        version: getVersion(req),
+      })) ?? []
     : [];
 
 /* Convert extension objects into a single readable string */
@@ -62,12 +78,14 @@ export const serialiseDerivativeColumns = (derivativeColumns: any[]): string =>
     ,requiredPackages:${JSON.stringify(
       getRequiredPackages(currColumn.config.script)
     )}
-    ,evaluate:async ({row,ref,db,auth,storage,utilFns}) =>{${currColumn.config.script.replace(
-      /(?:require\(.*)@\d+\.\d+\.\d+/g,
-      (capture) => capture.split("@")[0]
-    )}},\nlistenerFields:[${currColumn.config.listenerFields
-      .map((fieldKey: string) => `"${fieldKey}"`)
-      .join(",\n")}]},\n`;
+    ,evaluate:async ({row,ref,db,auth,storage,utilFns}) => {
+      ${currColumn.config.script.replace(
+        /(?:require\(.*)@\d+\.\d+\.\d+/g,
+        (capture) => capture.split("@")[0]
+      )}
+  },\nlistenerFields:[${currColumn.config.listenerFields
+    .map((fieldKey: string) => `"${fieldKey}"`)
+    .join(",\n")}]},\n`;
   }, "")}]`;
 
 export const serialiseDefaultValueColumns = (
@@ -89,10 +107,12 @@ export const serialiseDefaultValueColumns = (
     requiredPackages:${JSON.stringify(
       getRequiredPackages(currColumn.config.defaultValue.script)
     )},
-    script:async ({row,ref,db,auth,utilFns}) =>{${currColumn.config.defaultValue.script.replace(
-      /(?:require\(.*)@\d+\.\d+\.\d+/g,
-      (capture) => capture.split("@")[0]
-    )}},
+    script:async ({row,ref,db,auth,utilFns}) =>{
+      ${currColumn.config.defaultValue.script.replace(
+        /(?:require\(.*)@\d+\.\d+\.\d+/g,
+        (capture) => capture.split("@")[0]
+      )}
+  },
    },\n`;
     } else {
       return `${acc}{\nfieldName:'${currColumn.key}',
