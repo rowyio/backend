@@ -29,6 +29,7 @@ import { getAlgoliaSearchKey } from "./connectTable/algolia";
 import { metadataService, getProjectId } from "./metadataService";
 import { getLogs } from "./logging";
 import { auditChange } from "./logging/auditChange";
+import { telemetryError } from "./rowyService";
 const app = express();
 // json is the default content-type for POST requests
 app.use(express.json());
@@ -53,12 +54,13 @@ app.get("/", async (req, res) => {
   }
 });
 const functionWrapper = (fn) => async (req, res) => {
+  const user: firebase.auth.UserRecord = res.locals.user;
   try {
-    const user: firebase.auth.UserRecord = res.locals.user;
     const data = await fn(req, user);
     res.status(200).send(data);
   } catch (error) {
     console.error(error);
+    await telemetryError(req.path.slice(1), user, error);
     res.status(500).send(error);
   }
 };
