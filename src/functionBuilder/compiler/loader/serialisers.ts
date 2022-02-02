@@ -18,7 +18,7 @@ const getVersion = (dependency: string) => {
 };
 const getRequiredPackages = (code: string) =>
   code
-    ? getRequires(code).map((req) => ({
+    ? getRequires(code)?.map((req) => ({
         name: getPackageName(req),
         version: getVersion(req),
       })) ?? []
