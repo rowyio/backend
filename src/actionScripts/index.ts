@@ -1,8 +1,10 @@
 import _get from "lodash/get";
 import { db, auth } from "../firebaseConfig";
-import * as admin from "firebase-admin";
 import { Request, Response } from "express";
 import { User } from "../types/User";
+import fetch from "node-fetch";
+import { FieldValue } from "firebase-admin/firestore";
+import rowy from "./rowy";
 //TODO
 //import utilFns from "./utils";
 type Ref = {
@@ -26,11 +28,8 @@ const missingFieldsReducer = (data: any) => (acc: string[], curr: string) => {
   } else return acc;
 };
 
-const serverTimestamp = admin.firestore.FieldValue.serverTimestamp;
-
 export const authUser2rowyUser = (currentUser: User, data?: any) => {
   const { name, email, uid, email_verified, picture } = currentUser;
-
   return {
     timestamp: new Date(),
     displayName: name,
@@ -73,7 +72,7 @@ export const actionScript = async (req: Request, res: Response) => {
       throw Error(`You don't have the required roles permissions`);
     }
     const _actionScript = eval(
-      `async({row,db, ref,auth,utilFns,actionParams,user})=>{${
+      `async({row,db, ref,auth,utilFns,actionParams,user,fetch,rowy})=>{${
         action === "undo" ? _get(config, "undo.script") : script
       }}`
     );
@@ -103,12 +102,13 @@ export const actionScript = async (req: Request, res: Response) => {
           ref: doc.ref,
           actionParams,
           user: { ...authUser2rowyUser(user), roles: userRoles },
-          admin,
+          fetch,
+          rowy,
         });
         if (result.success || result.status) {
           const cellValue = {
             status: result.status,
-            completedAt: serverTimestamp(),
+            completedAt: FieldValue.serverTimestamp(),
             ranBy: user.email,
           };
           try {

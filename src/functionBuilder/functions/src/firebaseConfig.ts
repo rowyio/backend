@@ -1,19 +1,17 @@
-// Initialize Firebase Admin
-import * as functions from "firebase-functions";
-import * as _admin from "firebase-admin";
-_admin.initializeApp();
+import { initializeApp } from "firebase-admin/app";
+import { getFirestore } from "firebase-admin/firestore";
+import { getAuth } from "firebase-admin/auth";
+import { getStorage } from "firebase-admin/storage";
+
+initializeApp();
 
 // Initialize Cloud Firestore Database
-export const db = _admin.firestore();
+export const db = getFirestore();
 // Initialize Auth
-export const auth = _admin.auth();
-
+export const auth = getAuth();
 // Initialize Storage
-export const storage = _admin.storage();
-export const admin = _admin;
+export const storage = getStorage();
 const settings = {
-  timestampsInSnapshots: true,
   ignoreUndefinedProperties: true,
 };
 db.settings(settings);
-export const env = functions.config();

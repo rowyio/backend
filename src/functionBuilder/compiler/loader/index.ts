@@ -148,10 +148,11 @@ export const generateFile = async (configData) => {
     documentSelectConfig: serialiseDocumentSelectColumns(documentSelectColumns),
     extensionsConfig: serialiseExtension(extensions),
   };
+  const baseFile = `import fetch from "node-fetch";\n import rowy from "./rowy";\n`;
   const fileData = Object.keys(data).reduce((acc, currKey) => {
     return `${acc}\nexport const ${currKey} = ${data[currKey]}`;
   }, ``);
-  const serializedConfig = beautify(fileData, { indent_size: 2 });
+  const serializedConfig = beautify(baseFile + fileData, { indent_size: 2 });
   await db
     .doc(`_rowy_/settings/functions/${functionName}`)
     .update({ serializedConfig });

@@ -23,6 +23,12 @@ export default async function generateConfig(
   user: admin.auth.UserRecord,
   streamLogger
 ) {
+  const yarn = await asyncExecute(
+    `cd build/functionBuilder/functions;yarn`,
+    () => {
+      streamLogger.info("base dependencies installed successfully");
+    }
+  );
   const { functionConfigPath, tableSchemaPaths, triggerPath, functionName } =
     data;
   const configs = (
@@ -43,7 +49,7 @@ export default async function generateConfig(
   );
   await generateFile({ ...combinedConfig, functionName, triggerPath });
 
-  await streamLogger.info(`generateConfigFromTableSchema done`);
+  streamLogger.info(`generateConfigFromTableSchema done`);
   // sleep for a bit to insure file is ready
   await new Promise((resolve) => setTimeout(resolve, 100));
   const configFile = fs.readFileSync(
@@ -63,10 +69,10 @@ export default async function generateConfig(
   );
   if (!isFunctionConfigValid)
     throw new Error("Invalid compiled functionConfig.ts");
-  await streamLogger.info(
+  streamLogger.info(
     `isFunctionConfigValid: ${JSON.stringify(isFunctionConfigValid)}`
   );
-  await streamLogger.info(`configFile: ${JSON.stringify(configFile)}`);
+  streamLogger.info(`configFile: ${JSON.stringify(configFile)}`);
   // sleep for a bit to insure file is ready
   await new Promise((resolve) => setTimeout(resolve, 100));
   const {
@@ -103,10 +109,20 @@ export default async function generateConfig(
     ],
     _.isEqual
   );
+  // remove all dependencies that are already installed
+  const packageJson = require("../functions/package.json");
+  const installedDependencies = Object.keys(packageJson.dependencies);
 
-  if (requiredDependencies) {
+  const requiredDependenciesToInstall = requiredDependencies?.filter(
+    (i) => !installedDependencies.includes(i.name)
+  );
+
+  if (
+    requiredDependenciesToInstall &&
+    requiredDependenciesToInstall.length > 0
+  ) {
     const packagesAdded = await addPackages(
-      requiredDependencies,
+      requiredDependenciesToInstall,
       user,
       streamLogger
     );
@@ -114,8 +130,16 @@ export default async function generateConfig(
       return false;
     }
   }
+  console.log(
+    JSON.stringify({
+      requiredDependenciesToInstall,
+      requiredDependencies,
+      derivativesRequiredDeps,
+      installedDependencies,
+    })
+  );
   await streamLogger.info(
-    `requiredDependencies: ${JSON.stringify(requiredDependencies)}`
+    `requiredDependencies: ${JSON.stringify(requiredDependenciesToInstall)}`
   );
 
   const requiredExtensions = extensionsConfig.map((s: any) => s.type);
@@ -129,6 +153,5 @@ export default async function generateConfig(
       return false;
     }
   }
-
   return true;
 }
