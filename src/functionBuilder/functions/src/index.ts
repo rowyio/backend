@@ -8,6 +8,7 @@ import propagate from "./propagates";
 import initialize from "./initialize";
 export const R = {
   [functionConfig.functionName]: functions
+    .runWith(functionConfig.runtimeOptions ?? {})
     .region(functionConfig.region ?? "us-central1")
     .firestore.document(functionConfig.triggerPath)
     .onWrite(async (change, context) => {
