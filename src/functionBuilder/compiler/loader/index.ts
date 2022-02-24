@@ -19,7 +19,12 @@ export const getConfigFromTableSchema = async (
   try {
     if (!schemaData) throw new Error("no schema found");
     const derivativeColumns = Object.values(schemaData.columns).filter(
-      (col: any) => col.type === "DERIVATIVE"
+      (col: any) =>
+        col.type === "DERIVATIVE" &&
+        col.config?.listenerFields &&
+        col.config?.listenerFields.length > 0 &&
+        col.config?.script &&
+        col.config?.script.length > 0
     );
     const defaultValueColumns = Object.values(schemaData.columns).filter(
       (col: any) => Boolean(col.config?.defaultValue)
@@ -29,7 +34,7 @@ export const getConfigFromTableSchema = async (
       (col: any) => col.type === "DOCUMENT_SELECT" && col.config?.trackedFields
     );
 
-    const extensions = schemaData.extensionObjects;
+    const extensions = schemaData.extensionObjects ?? [];
     // generate field types from table meta data
     const fieldTypes = Object.keys(schemaData.columns).reduce((acc, cur) => {
       const field = schemaData.columns[cur];
