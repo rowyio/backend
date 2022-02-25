@@ -30,6 +30,7 @@ import { metadataService, getProjectId } from "./metadataService";
 import { getLogs } from "./logging";
 import { auditChange } from "./logging/auditChange";
 import { telemetryError } from "./rowyService";
+import { listSecrets } from "./secretManager";
 const app = express();
 // json is the default content-type for POST requests
 app.use(express.json());
@@ -165,7 +166,14 @@ app.get(
 app.post("/auditChange", requireAuth, functionWrapper(auditChange));
 
 //SECRET MANAGEMENT
-// get secret
+// list Secrets
+
+app.get(
+  "/listSecrets",
+  requireAuth,
+  hasAnyRole(["ADMIN"]),
+  functionWrapper(listSecrets)
+);
 
 const port = process.env.PORT || 8080;
 app.listen(port, () => {
