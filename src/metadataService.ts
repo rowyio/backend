@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import axios from "axios";
+import { env } from "process";
 
 const axiosInstance = axios.create({
   baseURL: "http://metadata.google.internal/",
@@ -20,6 +21,7 @@ export const getServiceAccountEmail = async () =>
     await axiosInstance.get("computeMetadata/v1/instance/service-accounts")
   ).data.split("\n")[1];
 export const getProjectId = async () =>
+  env.PROJECT_ID ??
   (await axiosInstance.get("computeMetadata/v1/project/project-id")).data;
 export const getNumericProjectId = async () =>
   (await axiosInstance.get("computeMetadata/v1/project/numeric-project-id"))

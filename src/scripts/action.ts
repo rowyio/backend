@@ -5,8 +5,6 @@ import { User } from "../types/User";
 import fetch from "node-fetch";
 import { FieldValue } from "firebase-admin/firestore";
 import rowy from "./rowy";
-//TODO
-//import utilFns from "./utils";
 type Ref = {
   id: string;
   path: string;

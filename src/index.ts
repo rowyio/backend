@@ -12,7 +12,8 @@ import {
   listCollections,
   setFirestoreRules,
 } from "./firestore";
-import { actionScript } from "./actionScripts";
+import { actionScript } from "./scripts/action";
+import { evaluateDerivative } from "./scripts/derivative";
 import { functionBuilder } from "./functionBuilder";
 import {
   version,
@@ -131,6 +132,10 @@ app.get(
 );
 // action script
 app.post("/actionScript", requireAuth, actionScript);
+
+//
+app.post("/evaluateDerivative", requireAuth, evaluateDerivative);
+
 // Function Builder
 app.post(
   "/buildFunction",
