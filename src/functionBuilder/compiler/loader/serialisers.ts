@@ -63,27 +63,22 @@ export const serialiseExtension = (extensions: IExtension[]): string =>
 /* convert derivative columns into a readable string */
 export const serialiseDerivativeColumns = (derivativeColumns: any[]): string =>
   `[${derivativeColumns.reduce((acc, currColumn: any) => {
-    if (
-      !currColumn.config.listenerFields ||
-      currColumn.config.listenerFields.length === 0
-    )
-      throw new Error(
-        `${currColumn.key} derivative is missing listener fields`
-      );
-    if (currColumn.config.listenerFields.includes(currColumn.key))
+    const { derivativeFn, script, listenerFields } = currColumn.config;
+    if (listenerFields.includes(currColumn.key))
       throw new Error(
         `${currColumn.key} derivative has its own key as a listener field`
       );
+    const functionBody = derivativeFn
+      ? derivativeFn.replace(/^.*=>/, "")
+      : `{\n${script}\n}`;
     return `${acc}{\nfieldName:'${currColumn.key}'
-    ,requiredPackages:${JSON.stringify(
-      getRequiredPackages(currColumn.config.script)
-    )}
-    ,evaluate:async ({row,ref,db,auth,storage,utilFns}) => {
-      ${currColumn.config.script.replace(
+    ,requiredPackages:${JSON.stringify(getRequiredPackages(functionBody))}
+    ,evaluate:async ({row,ref,db,auth,storage,utilFns}) =>
+      ${functionBody.replace(
         /(?:require\(.*)@\d+\.\d+\.\d+/g,
         (capture) => capture.split("@")[0]
       )}
-  },\nlistenerFields:[${currColumn.config.listenerFields
+  ,\nlistenerFields:[${listenerFields
     .map((fieldKey: string) => `"${fieldKey}"`)
     .join(",\n")}]},\n`;
   }, "")}]`;
@@ -92,23 +87,21 @@ export const serialiseDefaultValueColumns = (
   defaultValueColumns: any[]
 ): string =>
   `[${defaultValueColumns.reduce((acc, currColumn: any) => {
-    if (currColumn.config.defaultValue.type === "static") {
+    const { defaultValueFn, script, type, value } =
+      currColumn.config.defaultValue;
+    if (type === "static") {
       return `${acc}{\nfieldName:'${currColumn.key}',
-    type:"${currColumn.config.defaultValue.type}",
-    value:${
-      typeof currColumn.config.defaultValue.value === "string"
-        ? `"${currColumn.config.defaultValue.value}"`
-        : JSON.stringify(currColumn.config.defaultValue.value)
-    },
+    type:"${type}",
+    value:${typeof value === "string" ? `"${value}"` : JSON.stringify(value)},
    },\n`;
-    } else if (currColumn.config.defaultValue.type === "dynamic") {
+    } else if (type === "dynamic") {
+      const functionBody =
+        defaultValueFn.replace(/^.*=>/, "") ?? `{\n${script}\n}`;
       return `${acc}{\nfieldName:'${currColumn.key}',
-    type:"${currColumn.config.defaultValue.type}",
-    requiredPackages:${JSON.stringify(
-      getRequiredPackages(currColumn.config.defaultValue.script)
-    )},
-    script:async ({row,ref,db,auth,utilFns}) =>{
-      ${currColumn.config.defaultValue.script.replace(
+    type:"${type}",
+    requiredPackages:${JSON.stringify(getRequiredPackages(functionBody))},
+    script:async ({row,ref,db,auth,utilFns}) => {
+      ${functionBody.replace(
         /(?:require\(.*)@\d+\.\d+\.\d+/g,
         (capture) => capture.split("@")[0]
       )}
@@ -116,7 +109,7 @@ export const serialiseDefaultValueColumns = (
    },\n`;
     } else {
       return `${acc}{\nfieldName:'${currColumn.key}',
-    type:"${currColumn.config.defaultValue.type}"
+    type:"${type}"
    },\n`;
     }
   }, "")}]`;

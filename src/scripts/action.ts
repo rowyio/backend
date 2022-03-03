@@ -62,7 +62,13 @@ export const actionScript = async (req: Request, res: Response) => {
       });
     }
     const config = schemaDocData.columns[column.key].config;
-    const { script, requiredRoles, requiredFields } = config;
+    const { script, requiredRoles, requiredFields, runFn, undoFn } = config;
+    const runFunctionBody = runFn
+      ? runFn.replace(/^.*=>/, "")
+      : `{\n${script}\n}`;
+    const undoFunctionBody = undoFn
+      ? undoFn.replace(/^.*=>/, "")
+      : `{\n${_get(config, "undo.script")}\n}`;
     if (!requiredRoles || requiredRoles.length === 0) {
       throw Error(`You need to specify at least one role to run this script`);
     }
@@ -70,9 +76,9 @@ export const actionScript = async (req: Request, res: Response) => {
       throw Error(`You don't have the required roles permissions`);
     }
     const _actionScript = eval(
-      `async({row,db, ref,auth,utilFns,actionParams,user,fetch,rowy})=>{${
-        action === "undo" ? _get(config, "undo.script") : script
-      }}`
+      `async({row,db, ref,auth,utilFns,actionParams,user,fetch,rowy})=>
+      ${action === "undo" ? undoFunctionBody : runFunctionBody}
+      `
     );
     const getRows = refs
       ? refs.map(async (r) => db.doc(r.path).get())

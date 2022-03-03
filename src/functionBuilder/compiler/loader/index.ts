@@ -22,9 +22,7 @@ export const getConfigFromTableSchema = async (
       (col: any) =>
         col.type === "DERIVATIVE" &&
         col.config?.listenerFields &&
-        col.config?.listenerFields.length > 0 &&
-        col.config?.script &&
-        col.config?.script.length > 0
+        col.config?.listenerFields.length > 0
     );
     const defaultValueColumns = Object.values(schemaData.columns).filter(
       (col: any) => Boolean(col.config?.defaultValue)

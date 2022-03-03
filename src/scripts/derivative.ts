@@ -42,10 +42,11 @@ export const evaluateDerivative = async (req: Request, res: Response) => {
       });
     }
     const config = schemaDocData.columns[columnKey].config;
-    const { code } = config;
+    const { derivativeFn } = config;
 
     const derivativeFunction = eval(
-      `async({row,db,ref,auth,fetch,rowy})=>` + code.replace(/^.*=>/, "")
+      `async({row,db,ref,auth,fetch,rowy})=>` +
+        derivativeFn.replace(/^.*=>/, "")
     );
     const getRows = refs
       ? refs.map(async (r) => db.doc(r.path).get())
