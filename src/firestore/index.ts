@@ -1,6 +1,7 @@
 import { db } from "../firebaseConfig";
 import { Request } from "express";
 import { securityRules } from "firebase-admin";
+
 export const listCollections = async (req: Request) => {
   const { path } = req.query;
   if (path) {
@@ -32,3 +33,5 @@ export const setFirestoreRules = async (req: Request) => {
     message: "Firestore rules has been successfully updated",
   };
 };
+
+export const createCompositeIndex = async (req: Request) => {};
