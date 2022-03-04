@@ -87,7 +87,7 @@ export const serialiseDefaultValueColumns = (
   defaultValueColumns: any[]
 ): string =>
   `[${defaultValueColumns.reduce((acc, currColumn: any) => {
-    const { defaultValueFn, script, type, value } =
+    const { dynamicValueFn, script, type, value } =
       currColumn.config.defaultValue;
     if (type === "static") {
       return `${acc}{\nfieldName:'${currColumn.key}',
@@ -96,7 +96,7 @@ export const serialiseDefaultValueColumns = (
    },\n`;
     } else if (type === "dynamic") {
       const functionBody =
-        defaultValueFn.replace(/^.*=>/, "") ?? `{\n${script}\n}`;
+        dynamicValueFn.replace(/^.*=>/, "") ?? `{\n${script}\n}`;
       return `${acc}{\nfieldName:'${currColumn.key}',
     type:"${type}",
     requiredPackages:${JSON.stringify(getRequiredPackages(functionBody))},
