@@ -5,7 +5,7 @@
     "deploy": "echo 'n\n' | firebase deploy --interactive"
   },
   "engines": {
-    "node": "14"
+    "node": "16"
   },
   "main": "src/index.js",
   "dependencies": {
