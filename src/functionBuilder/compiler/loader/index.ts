@@ -141,6 +141,7 @@ export const generateFile = async (configData) => {
     extensions,
     triggerPath,
     functionName,
+    projectId,
   } = configData;
   const data = {
     fieldTypes: JSON.stringify(fieldTypes),
@@ -150,6 +151,7 @@ export const generateFile = async (configData) => {
     defaultValueConfig: serialiseDefaultValueColumns(defaultValueColumns),
     documentSelectConfig: serialiseDocumentSelectColumns(documentSelectColumns),
     extensionsConfig: serialiseExtension(extensions),
+    serviceAccount: `"rowy-functions@${projectId}.iam.gserviceaccount.com"`,
   };
   const baseFile = `import fetch from "node-fetch";\n import rowy from "./rowy";\n`;
   const fileData = Object.keys(data).reduce((acc, currKey) => {

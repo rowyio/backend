@@ -7,68 +7,64 @@ import { getTriggerType, changedDocPath } from "./utils";
 import propagate from "./propagates";
 import initialize from "./initialize";
 export const R = {
-  [functionConfig.functionName]:
-    functions//.runWith(functionConfig.runtimeOptions ?? {})
+  [functionConfig.functionName]: functions //.runWith(functionConfig.runtimeOptions ?? {})
     //.region(functionConfig.region ?? "us-central1")
-    .firestore
-      .document(functionConfig.triggerPath)
-      .onWrite(async (change, context) => {
-        const triggerType = getTriggerType(change);
-        let promises: Promise<any>[] = [];
-        const extensionPromises = functionConfig.extensionsConfig
-          .filter((extensionConfig) =>
-            extensionConfig.triggers.includes(triggerType)
-          )
-          .map((extensionConfig) =>
-            extension(extensionConfig, functionConfig.fieldTypes)(
-              change,
-              context
-            )
-          );
-        console.log(
-          `#${
-            extensionPromises.length
-          } extensions will be evaluated on ${triggerType} of ${changedDocPath(
-            change
-          )}`
+    .runWith({ serviceAccount: functionConfig.serviceAccount })
+    .firestore.document(functionConfig.triggerPath)
+    .onWrite(async (change, context) => {
+      const triggerType = getTriggerType(change);
+      let promises: Promise<any>[] = [];
+      const extensionPromises = functionConfig.extensionsConfig
+        .filter((extensionConfig) =>
+          extensionConfig.triggers.includes(triggerType)
+        )
+        .map((extensionConfig) =>
+          extension(extensionConfig, functionConfig.fieldTypes)(change, context)
         );
-        promises = extensionPromises;
-        const propagatePromise = propagate(
-          change,
-          functionConfig.documentSelectConfig,
-          triggerType
-        );
-        promises.push(propagatePromise);
-        try {
-          let docUpdates = {};
-          if (triggerType === "update") {
-            try {
-              docUpdates = await derivative(functionConfig.derivativesConfig)(
-                change
-              );
-            } catch (err) {
-              console.log(`caught error: ${err}`);
-            }
-          } else if (triggerType === "create") {
-            try {
-              const initialData = await initialize(
-                functionConfig.defaultValueConfig
-              )(change.after);
-              const derivativeData = await derivative(
-                functionConfig.derivativesConfig
-              )(change);
-              docUpdates = { ...initialData, ...derivativeData };
-            } catch (err) {
-              console.log(`caught error: ${err}`);
-            }
+      console.log(
+        `#${
+          extensionPromises.length
+        } extensions will be evaluated on ${triggerType} of ${changedDocPath(
+          change
+        )}`
+      );
+      promises = extensionPromises;
+      const propagatePromise = propagate(
+        change,
+        functionConfig.documentSelectConfig,
+        triggerType
+      );
+      promises.push(propagatePromise);
+      try {
+        let docUpdates = {};
+        if (triggerType === "update") {
+          try {
+            docUpdates = await derivative(functionConfig.derivativesConfig)(
+              change
+            );
+          } catch (err) {
+            console.log(`caught error: ${err}`);
           }
-          if (Object.keys(docUpdates).length !== 0) {
-            promises.push(change.after.ref.update(docUpdates));
+        } else if (triggerType === "create") {
+          try {
+            const initialData = await initialize(
+              functionConfig.defaultValueConfig
+            )(change.after);
+            const derivativeData = await derivative(
+              functionConfig.derivativesConfig
+            )(change);
+            docUpdates = { ...initialData, ...derivativeData };
+          } catch (err) {
+            console.log(`caught error: ${err}`);
           }
-          const result = await Promise.allSettled(promises);
-          console.log(JSON.stringify(result));
-        } catch (err) {
-          console.log(`caught error: ${err}`);
         }
-      }),
+        if (Object.keys(docUpdates).length !== 0) {
+          promises.push(change.after.ref.update(docUpdates));
+        }
+        const result = await Promise.allSettled(promises);
+        console.log(JSON.stringify(result));
+      } catch (err) {
+        console.log(`caught error: ${err}`);
+      }
+    }),
 };

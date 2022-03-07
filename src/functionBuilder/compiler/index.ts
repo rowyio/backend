@@ -12,6 +12,7 @@ import { commandErrorHandler } from "../logger";
 import { db } from "../../firebaseConfig";
 const path = require("path");
 import admin from "firebase-admin";
+import { getProjectId } from "../../metadataService";
 
 export default async function generateConfig(
   data: {
@@ -23,6 +24,7 @@ export default async function generateConfig(
   user: admin.auth.UserRecord,
   streamLogger
 ) {
+  const projectId = await getProjectId();
   const yarn = await asyncExecute(
     `cd build/functionBuilder/functions;yarn`,
     () => {
@@ -47,7 +49,12 @@ export default async function generateConfig(
     },
     { merge: true }
   );
-  await generateFile({ ...combinedConfig, functionName, triggerPath });
+  await generateFile({
+    ...combinedConfig,
+    functionName,
+    triggerPath,
+    projectId,
+  });
 
   streamLogger.info(`generateConfigFromTableSchema done`);
   // sleep for a bit to insure file is ready
@@ -130,23 +137,20 @@ export default async function generateConfig(
       return false;
     }
   }
-  console.log(
-    JSON.stringify({
-      requiredDependenciesToInstall,
-      requiredDependencies,
-      derivativesRequiredDeps,
-      installedDependencies,
-    })
-  );
-  await streamLogger.info(
-    `requiredDependencies: ${JSON.stringify(requiredDependenciesToInstall)}`
-  );
-
+  if (
+    requiredDependenciesToInstall &&
+    requiredDependenciesToInstall.length > 0
+  ) {
+    await streamLogger.info(
+      `requiredDependencies: ${JSON.stringify(requiredDependenciesToInstall)}`
+    );
+  }
   const requiredExtensions = extensionsConfig.map((s: any) => s.type);
-  await streamLogger.info(
-    `requiredExtensions: ${JSON.stringify(requiredExtensions)}`
-  );
-
+  if (requiredExtensions && requiredExtensions.length > 0) {
+    await streamLogger.info(
+      `requiredExtensions: ${JSON.stringify(requiredExtensions)}`
+    );
+  }
   for (const lib of requiredExtensions) {
     const success = await addExtensionLib(lib, user, streamLogger);
     if (!success) {
