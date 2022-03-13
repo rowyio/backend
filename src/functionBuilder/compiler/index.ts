@@ -56,9 +56,7 @@ export default async function generateConfig(
     projectId,
   });
 
-  streamLogger.info(`generateConfigFromTableSchema done`);
-  // sleep for a bit to insure file is ready
-  await new Promise((resolve) => setTimeout(resolve, 100));
+  await streamLogger.info(`generateConfigFromTableSchema done`);
   const configFile = fs.readFileSync(
     path.resolve(__dirname, "../functions/src/functionConfig.ts"),
     "utf-8"
@@ -79,9 +77,7 @@ export default async function generateConfig(
   streamLogger.info(
     `isFunctionConfigValid: ${JSON.stringify(isFunctionConfigValid)}`
   );
-  streamLogger.info(`configFile: ${JSON.stringify(configFile)}`);
-  // sleep for a bit to insure file is ready
-  await new Promise((resolve) => setTimeout(resolve, 100));
+  await streamLogger.info(`configFile: ${JSON.stringify(configFile)}`);
   const {
     derivativesConfig,
     defaultValueConfig,
@@ -93,8 +89,6 @@ export default async function generateConfig(
     }
     return acc;
   };
-  // sleep for a bit to insure file is ready
-  await new Promise((resolve) => setTimeout(resolve, 100));
   const derivativesRequiredDeps = derivativesConfig.reduce(
     requiredDepsReducer,
     []

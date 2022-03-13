@@ -1,6 +1,18 @@
 import { IExtension } from "./types";
+
+const removeInlineVersioning = (code) =>
+  code.replace(
+    /(?:require\(.*)@\d+\.\d+\.\d+/g,
+    (capture) => capture.split("@")[0]
+  );
+
 const getRequires = (code: string) =>
-  code.match(/(?<=((= |=)require\(("|')))[^.].*?(?=("|')\))/g);
+  code.match(/(?<=((= |=|\n* )require\(("|')))[^.].*?(?=("|')\))/g);
+/**
+ * checks if dependency is @google-cloud/... or @mui/...
+ * @param dependency
+ * @returns boolean
+ */
 const isGloballyScoped = (dependency: string) => !dependency.startsWith("@");
 const removeVersion = (dependency: string) =>
   isGloballyScoped(dependency)
@@ -48,11 +60,7 @@ export const serialiseExtension = (extensions: IExtension[]): string =>
             requiredPackages:${JSON.stringify(
               getRequiredPackages(extension.extensionBody)
             )},
-          extensionBody: ${extension.extensionBody
-            .replace(
-              /(?:require\(.*)@\d+\.\d+\.\d+/g,
-              (capture) => capture.split("@")[0]
-            )
+          extensionBody: ${removeInlineVersioning(extension.extensionBody)
             .replace(/^.*:\s*\w*Body\s*=/, "")
             .replace(/\s*;\s*$/, "")}
         }`
@@ -69,15 +77,12 @@ export const serialiseDerivativeColumns = (derivativeColumns: any[]): string =>
         `${currColumn.key} derivative has its own key as a listener field`
       );
     const functionBody = derivativeFn
-      ? derivativeFn.replace(/^.*=>/, "")
+      ? derivativeFn.replace(/(.|\r\n)*=>/, "")
       : `{\n${script}\n}`;
     return `${acc}{\nfieldName:'${currColumn.key}'
     ,requiredPackages:${JSON.stringify(getRequiredPackages(functionBody))}
     ,evaluate:async ({row,ref,db,auth,storage,utilFns}) =>
-      ${functionBody.replace(
-        /(?:require\(.*)@\d+\.\d+\.\d+/g,
-        (capture) => capture.split("@")[0]
-      )}
+      ${removeInlineVersioning(functionBody)}
   ,\nlistenerFields:[${listenerFields
     .map((fieldKey: string) => `"${fieldKey}"`)
     .join(",\n")}]},\n`;
@@ -96,15 +101,12 @@ export const serialiseDefaultValueColumns = (
    },\n`;
     } else if (type === "dynamic") {
       const functionBody =
-        dynamicValueFn.replace(/^.*=>/, "") ?? `{\n${script}\n}`;
+        dynamicValueFn.replace(/(.|\r\n)*=>/, "") ?? `{\n${script}\n}`;
       return `${acc}{\nfieldName:'${currColumn.key}',
     type:"${type}",
     requiredPackages:${JSON.stringify(getRequiredPackages(functionBody))},
     script:async ({row,ref,db,auth,utilFns}) => {
-      ${functionBody.replace(
-        /(?:require\(.*)@\d+\.\d+\.\d+/g,
-        (capture) => capture.split("@")[0]
-      )}
+      ${removeInlineVersioning(functionBody)}
   },
    },\n`;
     } else {

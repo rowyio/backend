@@ -7,9 +7,9 @@ import { getTriggerType, changedDocPath } from "./utils";
 import propagate from "./propagates";
 import initialize from "./initialize";
 export const R = {
-  [functionConfig.functionName]: functions //.runWith(functionConfig.runtimeOptions ?? {})
+  [functionConfig.functionName]: functions
     //.region(functionConfig.region ?? "us-central1")
-    .runWith({ serviceAccount: functionConfig.serviceAccount })
+    .runWith(functionConfig.runtimeOptions)
     .firestore.document(functionConfig.triggerPath)
     .onWrite(async (change, context) => {
       const triggerType = getTriggerType(change);
@@ -61,8 +61,7 @@ export const R = {
         if (Object.keys(docUpdates).length !== 0) {
           promises.push(change.after.ref.update(docUpdates));
         }
-        const result = await Promise.allSettled(promises);
-        console.log(JSON.stringify(result));
+        await Promise.all(promises);
       } catch (err) {
         console.log(`caught error: ${err}`);
       }

@@ -65,38 +65,6 @@ export const getConfigFromTableSchema = async (
   }
 };
 
-// examples of trigger paths
-// collection Type:
-// "collection/{docId}"
-// "collection/documentId/subCollection/{docId}"
-
-// collectionGroup Type:
-// '{col}/{doc1}/collection/{doc2}'
-// '{col1}/{doc1}/{col2}/{doc2}/collection/{doc3}'
-
-// subCollection Type:
-// "collection/{parentDoc}/subCollection/{docId}"
-// "collection/{parentDoc1}/subCollection1/{parentDoc2}/subCollection1/{docId}"
-// "col1/doc1/col2/{parentDoc}/subCollection/{docId}"
-const getTriggerType = (triggerPath: string): TriggerPathType => {
-  const triggerPathParts = triggerPath.split("/");
-  // collectionType only has one variable
-  const numberOfVariables = triggerPathParts.filter((part) =>
-    part.startsWith("{")
-  ).length;
-  if (numberOfVariables === 1) return "collection";
-  // subCollection type has variables in even parts only
-  const numberOfVariablesInEvenParts = triggerPathParts.filter(
-    (part, index) => index % 2 === 0 && part.startsWith("{")
-  ).length;
-  const numberOfVariablesInOddParts = triggerPathParts.filter(
-    (part, index) => index % 2 !== 0 && part.startsWith("{")
-  ).length;
-  if (numberOfVariablesInOddParts === 0 && numberOfVariablesInEvenParts > 1)
-    return "subCollection";
-  else return "collectionGroup";
-};
-
 export const combineConfigs = (configs: any[]) =>
   configs.reduce(
     (acc, cur: TableConfig) => {
@@ -151,19 +119,27 @@ export const generateFile = async (configData) => {
     defaultValueConfig: serialiseDefaultValueColumns(defaultValueColumns),
     documentSelectConfig: serialiseDocumentSelectColumns(documentSelectColumns),
     extensionsConfig: serialiseExtension(extensions),
-    serviceAccount: `"rowy-functions@${projectId}.iam.gserviceaccount.com"`,
+    runtimeOptions: JSON.stringify({
+      serviceAccount: `rowy-functions@${projectId}.iam.gserviceaccount.com`,
+    }),
   };
   const baseFile = `import fetch from "node-fetch";\n import rowy from "./rowy";\n`;
   const fileData = Object.keys(data).reduce((acc, currKey) => {
     return `${acc}\nexport const ${currKey} = ${data[currKey]}`;
   }, ``);
   const serializedConfig = beautify(baseFile + fileData, { indent_size: 2 });
-  await db
-    .doc(`_rowy_/settings/functions/${functionName}`)
-    .update({ serializedConfig });
   const path = require("path");
   fs.writeFileSync(
     path.resolve(__dirname, "../../functions/src/functionConfig.ts"),
     serializedConfig
   );
+  return Promise.all([
+    db
+      .doc(`_rowy_/settings/functions/${functionName}`)
+      .update({ serializedConfig, configData }),
+    db.collection(`_rowy_/settings/functions/${functionName}/history`).add({
+      serializedConfig,
+      configData,
+    }),
+  ]);
 };
