@@ -32,6 +32,7 @@ import { getLogs } from "./logging";
 import { auditChange } from "./logging/auditChange";
 import { telemetryError } from "./rowyService";
 import { listSecrets } from "./secretManager";
+import { connector } from "./scripts/connector";
 const app = express();
 // json is the default content-type for POST requests
 app.use(express.json());
@@ -135,6 +136,7 @@ app.post("/actionScript", requireAuth, actionScript);
 
 //
 app.post("/evaluateDerivative", requireAuth, evaluateDerivative);
+app.post("/connector", requireAuth, connector);
 
 // Function Builder
 app.post(

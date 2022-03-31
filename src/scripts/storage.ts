@@ -10,6 +10,7 @@ export const url2storage = async (
     bucket?: string;
     folderPath?: string;
     fileName?: string;
+    fileType?: { mime: string; ext: string };
   } = {}
 ) => {
   const response = await fetch(url);
@@ -28,11 +29,14 @@ export const data2storage = async (
     bucket?: string;
     folderPath?: string;
     fileName?: string;
+    fileType?: { mime: string; ext: string };
   } = {}
 ) => {
   const projectId = await getProjectId();
   const bucket = storage.bucket(options.bucket ?? `${projectId}.appspot.com`);
-  const fileType = Buffer.isBuffer(data)
+  const fileType = options.fileType
+    ? options.fileType
+    : Buffer.isBuffer(data)
     ? await fromBuffer(data)
     : {
         ext: ".txt",

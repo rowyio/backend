@@ -24,7 +24,7 @@ type uploadOptions = {
   folderPath?: string;
   fileName?: string;
 };
-interface Rowy {
+export interface Rowy {
   metadata: {
     projectId: () => Promise<string>;
     projectNumber: () => Promise<string>;
@@ -32,7 +32,7 @@ interface Rowy {
     serviceAccountUser: () => Promise<RowyUser>;
   };
   secrets: {
-    get: (name: string, version?: string) => Promise<string | undefined>;
+    get: (name: string, version?: string) => Promise<string | any | undefined>;
   };
   storage: {
     upload: {
