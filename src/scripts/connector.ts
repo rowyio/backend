@@ -1,11 +1,12 @@
 import _get from "lodash/get";
-import { db, auth } from "../firebaseConfig";
+import { db, auth, storage } from "../firebaseConfig";
 import { Request, Response } from "express";
 import { User } from "../types/User";
 import fetch from "node-fetch";
-import { DocumentReference, FieldValue } from "firebase-admin/firestore";
+import { DocumentReference } from "firebase-admin/firestore";
 import rowy, { Rowy } from "./rowy";
 import { Auth } from "firebase-admin/auth";
+import * as admin from "firebase-admin";
 
 type ConnectorRequest = {
   rowDocPath: string;
@@ -22,15 +23,10 @@ type ConnectorArgs = {
   user: User;
   rowy: Rowy;
   fetch: any;
+  storage: admin.storage.Storage;
 };
 
 type Connector = (args: ConnectorArgs) => Promise<any[]> | any[];
-
-const missingFieldsReducer = (data: any) => (acc: string[], curr: string) => {
-  if (data[curr] === undefined) {
-    return [...acc, curr];
-  } else return acc;
-};
 
 export const authUser2rowyUser = (currentUser: User, data?: any) => {
   const { name, email, uid, email_verified, picture } = currentUser;
@@ -62,16 +58,13 @@ export const connector = async (req: Request, res: Response) => {
       });
     }
     const config = schemaDocData.columns[columnKey].config;
-    const { connectorFn, requiredRoles, requiredFields } = config;
+    const { connectorFn } = config;
     const connectorFnBody = connectorFn.replace(/^.*=>/, "");
-    // TODO: Decide if roles are required
-    // if (!requiredRoles.some((role) => userRoles.includes(role))) {
-    //   throw Error(`You don't have the required roles permissions`);
-    // }
     const connectorScript = eval(
-      `async({row,db,ref,auth,fetch,rowy})=>` + connectorFnBody
+      `async({row,db,ref,auth,fetch,rowy,storage})=>` + connectorFnBody
     ) as Connector;
-    const functionUsesRow = connectorFnBody.includes("row"); // add regex to make sure rowy is not captured
+    const pattern = /row(?!y)/;
+    const functionUsesRow = pattern.test(connectorFnBody);
     const rowSnapshot = functionUsesRow
       ? (await db.doc(rowDocPath).get()).data()
       : null;
@@ -83,6 +76,7 @@ export const connector = async (req: Request, res: Response) => {
       auth,
       fetch,
       user,
+      storage,
       rowy,
     });
     return res.send({
