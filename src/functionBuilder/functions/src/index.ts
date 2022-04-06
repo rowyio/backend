@@ -1,33 +1,25 @@
 import * as functions from "firebase-functions";
 import derivative from "./derivatives";
 import extension from "./extensions";
-import {
-  functionName,
-  triggerPath,
-  derivativesConfig,
-  documentSelectConfig,
-  extensionsConfig,
-  defaultValueConfig,
-  fieldTypes,
-  region,
-} from "./functionConfig";
-
+import * as config from "./functionConfig";
+const functionConfig: any = config;
 import { getTriggerType, changedDocPath } from "./utils";
 import propagate from "./propagates";
 import initialize from "./initialize";
 export const R = {
-  [functionName]: functions
-    .region(region ?? "us-central1")
-    .firestore.document(triggerPath)
+  [functionConfig.functionName]: functions
+    //.region(functionConfig.region ?? "us-central1")
+    .runWith(functionConfig.runtimeOptions)
+    .firestore.document(functionConfig.triggerPath)
     .onWrite(async (change, context) => {
       const triggerType = getTriggerType(change);
       let promises: Promise<any>[] = [];
-      const extensionPromises = extensionsConfig
+      const extensionPromises = functionConfig.extensionsConfig
         .filter((extensionConfig) =>
           extensionConfig.triggers.includes(triggerType)
         )
         .map((extensionConfig) =>
-          extension(extensionConfig, fieldTypes)(change, context)
+          extension(extensionConfig, functionConfig.fieldTypes)(change, context)
         );
       console.log(
         `#${
@@ -39,7 +31,7 @@ export const R = {
       promises = extensionPromises;
       const propagatePromise = propagate(
         change,
-        documentSelectConfig,
+        functionConfig.documentSelectConfig,
         triggerType
       );
       promises.push(propagatePromise);
@@ -47,16 +39,20 @@ export const R = {
         let docUpdates = {};
         if (triggerType === "update") {
           try {
-            docUpdates = await derivative(derivativesConfig)(change);
+            docUpdates = await derivative(functionConfig.derivativesConfig)(
+              change
+            );
           } catch (err) {
             console.log(`caught error: ${err}`);
           }
         } else if (triggerType === "create") {
           try {
-            const initialData = await initialize(defaultValueConfig)(
-              change.after
-            );
-            const derivativeData = await derivative(derivativesConfig)(change);
+            const initialData = await initialize(
+              functionConfig.defaultValueConfig
+            )(change.after);
+            const derivativeData = await derivative(
+              functionConfig.derivativesConfig
+            )(change);
             docUpdates = { ...initialData, ...derivativeData };
           } catch (err) {
             console.log(`caught error: ${err}`);
@@ -65,8 +61,7 @@ export const R = {
         if (Object.keys(docUpdates).length !== 0) {
           promises.push(change.after.ref.update(docUpdates));
         }
-        const result = await Promise.allSettled(promises);
-        console.log(JSON.stringify(result));
+        await Promise.all(promises);
       } catch (err) {
         console.log(`caught error: ${err}`);
       }

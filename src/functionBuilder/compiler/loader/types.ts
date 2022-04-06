@@ -19,12 +19,9 @@ export interface IExtensionEditor {
 }
 
 export interface IExtension {
-  // rowy meta fields
   name: string;
   active: boolean;
   lastEditor: IExtensionEditor;
-
-  // ft build fields
   triggers: IExtensionTrigger[];
   type: IExtensionType;
   requiredFields: string[];

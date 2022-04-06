@@ -1,10 +1,10 @@
 import _get from "lodash/get";
 import { db, auth } from "../firebaseConfig";
-import * as admin from "firebase-admin";
 import { Request, Response } from "express";
 import { User } from "../types/User";
-//TODO
-//import utilFns from "./utils";
+import fetch from "node-fetch";
+import { FieldValue } from "firebase-admin/firestore";
+import rowy from "./rowy";
 type Ref = {
   id: string;
   path: string;
@@ -26,11 +26,8 @@ const missingFieldsReducer = (data: any) => (acc: string[], curr: string) => {
   } else return acc;
 };
 
-const serverTimestamp = admin.firestore.FieldValue.serverTimestamp;
-
 export const authUser2rowyUser = (currentUser: User, data?: any) => {
   const { name, email, uid, email_verified, picture } = currentUser;
-
   return {
     timestamp: new Date(),
     displayName: name,
@@ -65,7 +62,13 @@ export const actionScript = async (req: Request, res: Response) => {
       });
     }
     const config = schemaDocData.columns[column.key].config;
-    const { script, requiredRoles, requiredFields } = config;
+    const { script, requiredRoles, requiredFields, runFn, undoFn } = config;
+    const runFunctionBody = runFn
+      ? runFn.replace(/^.*=>/, "")
+      : `{\n${script}\n}`;
+    const undoFunctionBody = undoFn
+      ? undoFn.replace(/^.*=>/, "")
+      : `{\n${_get(config, "undo.script")}\n}`;
     if (!requiredRoles || requiredRoles.length === 0) {
       throw Error(`You need to specify at least one role to run this script`);
     }
@@ -73,9 +76,9 @@ export const actionScript = async (req: Request, res: Response) => {
       throw Error(`You don't have the required roles permissions`);
     }
     const _actionScript = eval(
-      `async({row,db, ref,auth,utilFns,actionParams,user})=>{${
-        action === "undo" ? _get(config, "undo.script") : script
-      }}`
+      `async({row,db, ref,auth,utilFns,actionParams,user,fetch,rowy})=>
+      ${action === "undo" ? undoFunctionBody : runFunctionBody}
+      `
     );
     const getRows = refs
       ? refs.map(async (r) => db.doc(r.path).get())
@@ -103,12 +106,13 @@ export const actionScript = async (req: Request, res: Response) => {
           ref: doc.ref,
           actionParams,
           user: { ...authUser2rowyUser(user), roles: userRoles },
-          admin,
+          fetch,
+          rowy,
         });
         if (result.success || result.status) {
           const cellValue = {
             status: result.status,
-            completedAt: serverTimestamp(),
+            completedAt: FieldValue.serverTimestamp(),
             ranBy: user.email,
           };
           try {

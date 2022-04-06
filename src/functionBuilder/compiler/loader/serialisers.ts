@@ -1,6 +1,18 @@
 import { IExtension } from "./types";
+
+const removeInlineVersioning = (code) =>
+  code.replace(
+    /(?:require\(.*)@\d+\.\d+\.\d+/g,
+    (capture) => capture.split("@")[0]
+  );
+
 const getRequires = (code: string) =>
-  code.match(/(?<=((= |=)require\(("|')))[^.].*?(?=("|')\))/g);
+  code.match(/(?<=((= |=|\n* )require\(("|')))[^.].*?(?=("|')\))/g);
+/**
+ * checks if dependency is @google-cloud/... or @mui/...
+ * @param dependency
+ * @returns boolean
+ */
 const isGloballyScoped = (dependency: string) => !dependency.startsWith("@");
 const removeVersion = (dependency: string) =>
   isGloballyScoped(dependency)
@@ -18,7 +30,7 @@ const getVersion = (dependency: string) => {
 };
 const getRequiredPackages = (code: string) =>
   code
-    ? getRequires(code).map((req) => ({
+    ? getRequires(code)?.map((req) => ({
         name: getPackageName(req),
         version: getVersion(req),
       })) ?? []
@@ -48,11 +60,7 @@ export const serialiseExtension = (extensions: IExtension[]): string =>
             requiredPackages:${JSON.stringify(
               getRequiredPackages(extension.extensionBody)
             )},
-          extensionBody: ${extension.extensionBody
-            .replace(
-              /(?:require\(.*)@\d+\.\d+\.\d+/g,
-              (capture) => capture.split("@")[0]
-            )
+          extensionBody: ${removeInlineVersioning(extension.extensionBody)
             .replace(/^.*:\s*\w*Body\s*=/, "")
             .replace(/\s*;\s*$/, "")}
         }`
@@ -63,27 +71,19 @@ export const serialiseExtension = (extensions: IExtension[]): string =>
 /* convert derivative columns into a readable string */
 export const serialiseDerivativeColumns = (derivativeColumns: any[]): string =>
   `[${derivativeColumns.reduce((acc, currColumn: any) => {
-    if (
-      !currColumn.config.listenerFields ||
-      currColumn.config.listenerFields.length === 0
-    )
-      throw new Error(
-        `${currColumn.key} derivative is missing listener fields`
-      );
-    if (currColumn.config.listenerFields.includes(currColumn.key))
+    const { derivativeFn, script, listenerFields } = currColumn.config;
+    if (listenerFields.includes(currColumn.key))
       throw new Error(
         `${currColumn.key} derivative has its own key as a listener field`
       );
+    const functionBody = derivativeFn
+      ? derivativeFn.replace(/(.|\r\n)*=>/, "")
+      : `{\n${script}\n}`;
     return `${acc}{\nfieldName:'${currColumn.key}'
-    ,requiredPackages:${JSON.stringify(
-      getRequiredPackages(currColumn.config.script)
-    )}
-    ,evaluate:async ({row,ref,db,auth,storage,utilFns}) => {
-      ${currColumn.config.script.replace(
-        /(?:require\(.*)@\d+\.\d+\.\d+/g,
-        (capture) => capture.split("@")[0]
-      )}
-  },\nlistenerFields:[${currColumn.config.listenerFields
+    ,requiredPackages:${JSON.stringify(getRequiredPackages(functionBody))}
+    ,evaluate:async ({row,ref,db,auth,storage,utilFns}) =>
+      ${removeInlineVersioning(functionBody)}
+  ,\nlistenerFields:[${listenerFields
     .map((fieldKey: string) => `"${fieldKey}"`)
     .join(",\n")}]},\n`;
   }, "")}]`;
@@ -92,31 +92,26 @@ export const serialiseDefaultValueColumns = (
   defaultValueColumns: any[]
 ): string =>
   `[${defaultValueColumns.reduce((acc, currColumn: any) => {
-    if (currColumn.config.defaultValue.type === "static") {
+    const { dynamicValueFn, script, type, value } =
+      currColumn.config.defaultValue;
+    if (type === "static") {
       return `${acc}{\nfieldName:'${currColumn.key}',
-    type:"${currColumn.config.defaultValue.type}",
-    value:${
-      typeof currColumn.config.defaultValue.value === "string"
-        ? `"${currColumn.config.defaultValue.value}"`
-        : JSON.stringify(currColumn.config.defaultValue.value)
-    },
+    type:"${type}",
+    value:${typeof value === "string" ? `"${value}"` : JSON.stringify(value)},
    },\n`;
-    } else if (currColumn.config.defaultValue.type === "dynamic") {
+    } else if (type === "dynamic") {
+      const functionBody =
+        dynamicValueFn.replace(/(.|\r\n)*=>/, "") ?? `{\n${script}\n}`;
       return `${acc}{\nfieldName:'${currColumn.key}',
-    type:"${currColumn.config.defaultValue.type}",
-    requiredPackages:${JSON.stringify(
-      getRequiredPackages(currColumn.config.defaultValue.script)
-    )},
-    script:async ({row,ref,db,auth,utilFns}) =>{
-      ${currColumn.config.defaultValue.script.replace(
-        /(?:require\(.*)@\d+\.\d+\.\d+/g,
-        (capture) => capture.split("@")[0]
-      )}
+    type:"${type}",
+    requiredPackages:${JSON.stringify(getRequiredPackages(functionBody))},
+    script:async ({row,ref,db,auth,utilFns}) => {
+      ${removeInlineVersioning(functionBody)}
   },
    },\n`;
     } else {
       return `${acc}{\nfieldName:'${currColumn.key}',
-    type:"${currColumn.config.defaultValue.type}"
+    type:"${type}"
    },\n`;
     }
   }, "")}]`;

@@ -12,7 +12,8 @@ import {
   listCollections,
   setFirestoreRules,
 } from "./firestore";
-import { actionScript } from "./actionScripts";
+import { actionScript } from "./scripts/action";
+import { evaluateDerivative } from "./scripts/derivative";
 import { functionBuilder } from "./functionBuilder";
 import {
   version,
@@ -29,6 +30,9 @@ import { getAlgoliaSearchKey } from "./connectTable/algolia";
 import { metadataService, getProjectId } from "./metadataService";
 import { getLogs } from "./logging";
 import { auditChange } from "./logging/auditChange";
+import { telemetryError } from "./rowyService";
+import { listSecrets } from "./secretManager";
+import { connector } from "./scripts/connector";
 const app = express();
 // json is the default content-type for POST requests
 app.use(express.json());
@@ -53,12 +57,13 @@ app.get("/", async (req, res) => {
   }
 });
 const functionWrapper = (fn) => async (req, res) => {
+  const user: firebase.auth.UserRecord = res.locals.user;
   try {
-    const user: firebase.auth.UserRecord = res.locals.user;
     const data = await fn(req, user);
     res.status(200).send(data);
   } catch (error) {
     console.error(error);
+    await telemetryError(req.path.slice(1), user, error);
     res.status(500).send(error);
   }
 };
@@ -128,6 +133,11 @@ app.get(
 );
 // action script
 app.post("/actionScript", requireAuth, actionScript);
+
+//
+app.post("/evaluateDerivative", requireAuth, evaluateDerivative);
+app.post("/connector", requireAuth, connector);
+
 // Function Builder
 app.post(
   "/buildFunction",
@@ -163,7 +173,14 @@ app.get(
 app.post("/auditChange", requireAuth, functionWrapper(auditChange));
 
 //SECRET MANAGEMENT
-// get secret
+// list Secrets
+
+app.get(
+  "/listSecrets",
+  requireAuth,
+  hasAnyRole(["ADMIN"]),
+  functionWrapper(listSecrets)
+);
 
 const port = process.env.PORT || 8080;
 app.listen(port, () => {

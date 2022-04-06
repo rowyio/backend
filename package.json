@@ -1,7 +1,7 @@
 {
   "name": "rowy-backend",
   "description": "cloud run instance for running Rowy's backend functionality",
-  "version": "1.2.6",
+  "version": "1.5.0",
   "private": true,
   "main": "build/index.js",
   "scripts": {
@@ -15,7 +15,7 @@
     "deploy": "./deploy.sh --project"
   },
   "engines": {
-    "node": "14"
+    "node": "16"
   },
   "author": "Rowy Inc.",
   "license": "Apache-2.0",
@@ -26,9 +26,12 @@
     "axios": "^0.21.4",
     "cpy-cli": "^2.0.0",
     "express": "^4.17.1",
-    "firebase-admin": "^9.11.1",
-    "firebase-functions": "^3.15.7",
-    "lodash": "^4.17.21"
+    "file-type": "^16.5.3",
+    "firebase-admin": "^10.0.2",
+    "firebase-functions": "^3.18.1",
+    "lodash": "^4.17.21",
+    "node-fetch": "^2.6.7",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@types/express": "^4.17.13",

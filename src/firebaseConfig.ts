@@ -1,13 +1,23 @@
-// Initialize Firebase Admin
-import * as admin from "firebase-admin";
+import { initializeApp, cert } from "firebase-admin/app";
+import { getFirestore } from "firebase-admin/firestore";
+import { getAuth } from "firebase-admin/auth";
+import { getStorage } from "firebase-admin/storage";
 
-const credential = process.env.DEV
-  ? admin.credential.cert(require(`../firebase-adminsdk.json`))
-  : admin.credential.applicationDefault();
-admin.initializeApp({
-  credential,
-});
-const db = admin.firestore();
-const auth = admin.auth();
-db.settings({ timestampsInSnapshots: true, ignoreUndefinedProperties: true });
-export { db, admin, auth };
+if (process.env.DEV) {
+  const serviceAccount = require("../firebase-adminsdk.json");
+  initializeApp({
+    credential: cert(serviceAccount),
+  });
+} else {
+  initializeApp();
+}
+// Initialize Cloud Firestore Database
+export const db = getFirestore();
+// Initialize Auth
+export const auth = getAuth();
+// Initialize Storage
+export const storage = getStorage();
+const settings = {
+  ignoreUndefinedProperties: true,
+};
+db.settings(settings);
