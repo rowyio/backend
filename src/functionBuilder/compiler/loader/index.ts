@@ -110,6 +110,7 @@ export const generateFile = async (configData) => {
     triggerPath,
     functionName,
     projectId,
+    region,
   } = configData;
   const data = {
     fieldTypes: JSON.stringify(fieldTypes),
@@ -122,6 +123,7 @@ export const generateFile = async (configData) => {
     runtimeOptions: JSON.stringify({
       serviceAccount: `rowy-functions@${projectId}.iam.gserviceaccount.com`,
     }),
+    region: JSON.stringify(region),
   };
   const baseFile = `import fetch from "node-fetch";\n import rowy from "./rowy";\n`;
   const fileData = Object.keys(data).reduce((acc, currKey) => {

@@ -36,7 +36,8 @@ export const functionBuilder = async (
       pathname,
       tables
     );
-    console.log({ collectionPath });
+
+    const region = settings.get("cloudFunctionsRegion") ?? "us-central1";
     const table = tables.find((t: any) => t.collection === tablePath);
     const functionName = getFunctionName(
       collectionType,
@@ -58,21 +59,9 @@ export const functionBuilder = async (
         tables,
         tableConfigPath,
       });
-      console.log({ triggerPath });
       const projectId = process.env.DEV
         ? require("../../firebase-adminsdk.json").project_id
         : await getProjectId();
-      console.log({
-        projectId,
-        collectionType,
-        collectionPath,
-        triggerPath,
-        functionName,
-        functionConfigPath,
-        tablePath,
-        tableConfigPath,
-        tableSchemaPaths,
-      });
       await Promise.all([
         db
           .doc(functionConfigPath)
@@ -88,6 +77,7 @@ export const functionBuilder = async (
           tableSchemaPaths,
           functionName,
           triggerPath,
+          region,
         },
         user,
         streamLogger
