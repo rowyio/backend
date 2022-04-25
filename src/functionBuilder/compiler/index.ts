@@ -20,6 +20,7 @@ export default async function generateConfig(
     functionName: string;
     triggerPath: string;
     tableSchemaPaths: string[];
+    region: string;
   },
   user: admin.auth.UserRecord,
   streamLogger
@@ -31,8 +32,13 @@ export default async function generateConfig(
       streamLogger.info("base dependencies installed successfully");
     }
   );
-  const { functionConfigPath, tableSchemaPaths, triggerPath, functionName } =
-    data;
+  const {
+    functionConfigPath,
+    tableSchemaPaths,
+    triggerPath,
+    functionName,
+    region,
+  } = data;
   const configs = (
     await Promise.all(
       tableSchemaPaths.map((path) =>
@@ -54,6 +60,7 @@ export default async function generateConfig(
     functionName,
     triggerPath,
     projectId,
+    region,
   });
 
   await streamLogger.info(`generateConfigFromTableSchema done`);

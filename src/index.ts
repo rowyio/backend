@@ -24,7 +24,6 @@ import {
 } from "./setup";
 import { checkIfFTMigrationRequired, migrateFT2Rowy } from "./setup/ft2rowy";
 import firebase from "firebase-admin";
-import { db } from "./firebaseConfig";
 import { getAlgoliaSearchKey } from "./connectTable/algolia";
 
 import { metadataService, getProjectId } from "./metadataService";
@@ -42,18 +41,9 @@ app.use(cors());
 app.get("/", async (req, res) => {
   const projectId = await getProjectId();
   try {
-    const settingsDoc = await db.doc(`_rowy_/settings`).get();
-    const rowyRunUrl = settingsDoc.get("rowyRunUrl");
-    const setupCompleted = settingsDoc.get("rowyRunBuildStatus") === "COMPLETE";
-    if (setupCompleted) {
-      res.redirect(`https://${projectId}.rowy.app`);
-    } else {
-      res.redirect(
-        `https://${projectId}.rowy.app/setup?rowyRunUrl=${rowyRunUrl}`
-      );
-    }
+    res.redirect(`https://${projectId}.rowy.app`);
   } catch (error) {
-    res.redirect(`https://${projectId}.rowy.app/setup`);
+    res.redirect(`https://deploy.rowy.app`);
   }
 });
 const functionWrapper = (fn) => async (req, res) => {
