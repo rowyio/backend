@@ -11,6 +11,7 @@ type RequestData = {
   ref?: DocumentReference;
   schemaDocPath: string;
   columnKey: string;
+  collectionPath?: string;
 };
 
 export const authUser2rowyUser = (currentUser: User, data?: any) => {
@@ -32,7 +33,11 @@ export const evaluateDerivative = async (req: Request, res: Response) => {
     const userRoles = user.roles;
     if (!userRoles || userRoles.length === 0)
       throw new Error("User has no assigned roles");
-    const { refs, ref, schemaDocPath, columnKey }: RequestData = req.body;
+    // only admin can evaluate derivative
+    if (!userRoles.includes("ADMIN"))
+      throw new Error("Authenticated User is not admin");
+    const { refs, ref, schemaDocPath, columnKey, collectionPath }: RequestData =
+      req.body;
     const schemaDoc = await db.doc(schemaDocPath).get();
     const schemaDocData = schemaDoc.data();
     if (!schemaDocData) {
@@ -51,10 +56,16 @@ export const evaluateDerivative = async (req: Request, res: Response) => {
     const derivativeFunction = eval(
       `async({row,db,ref,auth,fetch,rowy})=>` + code.replace(/^.*=>/, "")
     );
-    const getRows = refs
-      ? refs.map(async (r) => db.doc(r.path).get())
-      : [db.doc(ref.path).get()];
-    const rowSnapshots = await Promise.all(getRows);
+    let rowSnapshots: FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData>[] =
+      [];
+    if (collectionPath) {
+      rowSnapshots = (await db.collection(collectionPath).get()).docs;
+    } else {
+      const getRows = refs
+        ? refs.map(async (r) => db.doc(r.path).get())
+        : [db.doc(ref.path).get()];
+      rowSnapshots = await Promise.all(getRows);
+    }
     const tasks = rowSnapshots.map(async (doc) => {
       try {
         const row = doc.data();
