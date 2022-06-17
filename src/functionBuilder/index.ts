@@ -122,7 +122,7 @@ export const functionBuilder = async (
       };
     } catch (error) {
       isBuilding = false;
-      console.log(error);
+      console.error(error);
       await streamLogger.error(
         "Function Builder Failed:\n" + JSON.stringify(error)
       );
@@ -134,7 +134,7 @@ export const functionBuilder = async (
     }
   } catch (error) {
     isBuilding = false;
-    console.log(error);
+    console.error(error);
     return {
       success: false,
       reason: `function builder failed`,

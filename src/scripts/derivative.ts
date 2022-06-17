@@ -66,36 +66,45 @@ export const evaluateDerivative = async (req: Request, res: Response) => {
         : [db.doc(ref.path).get()];
       rowSnapshots = await Promise.all(getRows);
     }
-    const tasks = rowSnapshots.map(async (doc) => {
-      try {
-        const row = doc.data();
-        const result: any = await derivativeFunction({
-          row: row,
-          db,
-          auth,
-          ref: doc.ref,
-          fetch,
-          rowy,
-        });
-        const update = { [columnKey]: result };
-        if (schemaDocData?.audit !== false) {
-          update[
-            (schemaDocData?.auditFieldUpdatedBy as string) || "_updatedBy"
-          ] = authUser2rowyUser(user!, { updatedField: columnKey });
+    const results = [];
+    for (let i = 0; i < rowSnapshots.length; i += 300) {
+      const chunk = rowSnapshots.slice(i, i + 300);
+      const batch = db.batch();
+      const batchResults = chunk.map(async (doc) => {
+        try {
+          const row = doc.data();
+          const result: any = await derivativeFunction({
+            row: row,
+            db,
+            auth,
+            ref: doc.ref,
+            fetch,
+            rowy,
+          });
+          const update = { [columnKey]: result };
+          if (schemaDocData?.audit !== false) {
+            update[
+              (schemaDocData?.auditFieldUpdatedBy as string) || "_updatedBy"
+            ] = authUser2rowyUser(user!, { updatedField: columnKey });
+          }
+          await batch.update(doc.ref, update);
+          return {
+            success: true,
+          };
+        } catch (error: any) {
+          return {
+            success: false,
+            error,
+            message: error.message,
+          };
         }
-        await db.doc(ref.path).update(update);
-        return {
-          success: true,
-        };
-      } catch (error: any) {
-        return {
-          success: false,
-          error,
-          message: error.message,
-        };
-      }
-    });
-    const results = await Promise.all(tasks);
+      });
+      results.push(...(await Promise.all(batchResults)));
+      await batch.commit();
+      // do whatever
+    }
+    // const tasks = rowSnapshots
+    // const results = await Promise.all(tasks);
     if (results.length === 1) {
       return res.send(results[0]);
     }
