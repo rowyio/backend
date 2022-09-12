@@ -23,15 +23,16 @@ export default async function generateConfig(
     region: string;
   },
   user: admin.auth.UserRecord,
-  streamLogger
+  streamLogger,
+  buildPath,
+  buildFolderTimestamp
 ) {
   const projectId = await getProjectId();
-  const yarn = await asyncExecute(
-    `cd build/functionBuilder/functions;yarn`,
-    () => {
-      streamLogger.info("base dependencies installed successfully");
-    }
-  );
+  const yarn = await asyncExecute(`cd ${buildPath};yarn`, () => {
+    streamLogger.info("Base dependencies installed successfully");
+  });
+
+  await streamLogger.info(`Generating schema...`);
   const {
     functionConfigPath,
     tableSchemaPaths,
@@ -55,21 +56,31 @@ export default async function generateConfig(
     },
     { merge: true }
   );
-  await generateFile({
-    ...combinedConfig,
-    functionName,
-    triggerPath,
-    projectId,
-    region,
-  });
 
-  await streamLogger.info(`generateConfigFromTableSchema done`);
+  await streamLogger.info(`Generating config file...`);
+  await generateFile(
+    {
+      ...combinedConfig,
+      functionName,
+      triggerPath,
+      projectId,
+      region,
+    },
+    buildFolderTimestamp
+  );
+
+  await streamLogger.info(`Retrieving config file...`);
   const configFile = fs.readFileSync(
-    path.resolve(__dirname, "../functions/src/functionConfig.ts"),
+    path.resolve(
+      __dirname,
+      `../builds/${buildFolderTimestamp}/src/functionConfig.ts`
+    ),
     "utf-8"
   );
+
+  await streamLogger.info(`Validating config file...`);
   const isFunctionConfigValid = await asyncExecute(
-    "cd build/functionBuilder/functions/src;tsc functionConfig.ts",
+    `cd ${buildPath}/src;tsc functionConfig.ts`,
     commandErrorHandler(
       {
         user,
@@ -79,17 +90,16 @@ export default async function generateConfig(
       streamLogger
     )
   );
-  if (!isFunctionConfigValid)
+  if (!isFunctionConfigValid) {
     throw new Error("Invalid compiled functionConfig.ts");
-  streamLogger.info(
-    `isFunctionConfigValid: ${JSON.stringify(isFunctionConfigValid)}`
-  );
-  await streamLogger.info(`configFile: ${JSON.stringify(configFile)}`);
+  }
+  await streamLogger.info(`Config file: ${JSON.stringify(configFile)}`);
+
   const {
     derivativesConfig,
     defaultValueConfig,
     extensionsConfig,
-  } = require("../functions/src/functionConfig");
+  } = require(`../builds/${buildFolderTimestamp}/src/functionConfig`);
   const requiredDepsReducer = (acc, curr) => {
     if (curr.requiredPackages && curr.requiredPackages.length > 0) {
       return acc.concat(curr.requiredPackages);
@@ -118,13 +128,16 @@ export default async function generateConfig(
     _.isEqual
   );
   // remove all dependencies that are already installed
-  const packageJson = require("../functions/package.json");
+  const packageJson = require(`../builds/${buildFolderTimestamp}/package.json`);
   const installedDependencies = Object.keys(packageJson.dependencies);
 
   const requiredDependenciesToInstall = requiredDependencies?.filter(
     (i) => !installedDependencies.includes(i.name)
   );
 
+  await streamLogger.info(
+    `Installing dependencies: ${JSON.stringify(requiredDependenciesToInstall)}`
+  );
   if (
     requiredDependenciesToInstall &&
     requiredDependenciesToInstall.length > 0
@@ -132,28 +145,26 @@ export default async function generateConfig(
     const packagesAdded = await addPackages(
       requiredDependenciesToInstall,
       user,
-      streamLogger
+      streamLogger,
+      buildPath
     );
     if (!packagesAdded) {
       return false;
     }
   }
-  if (
-    requiredDependenciesToInstall &&
-    requiredDependenciesToInstall.length > 0
-  ) {
-    await streamLogger.info(
-      `requiredDependencies: ${JSON.stringify(requiredDependenciesToInstall)}`
-    );
-  }
+
   const requiredExtensions = extensionsConfig.map((s: any) => s.type);
-  if (requiredExtensions && requiredExtensions.length > 0) {
-    await streamLogger.info(
-      `requiredExtensions: ${JSON.stringify(requiredExtensions)}`
-    );
-  }
+  await streamLogger.info(
+    `Installing extensions: ${JSON.stringify(requiredExtensions)}`
+  );
   for (const lib of requiredExtensions) {
-    const success = await addExtensionLib(lib, user, streamLogger);
+    const success = await addExtensionLib(
+      lib,
+      user,
+      streamLogger,
+      buildPath,
+      buildFolderTimestamp
+    );
     if (!success) {
       return false;
     }

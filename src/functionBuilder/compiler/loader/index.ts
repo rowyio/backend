@@ -5,7 +5,7 @@ import {
   serialiseDocumentSelectColumns,
   serialiseExtension,
 } from "./serialisers";
-import { TriggerPathType, TableConfig } from "./types";
+import { TableConfig } from "./types";
 const fs = require("fs");
 const beautify = require("js-beautify").js;
 
@@ -13,7 +13,6 @@ export const getConfigFromTableSchema = async (
   schemaDocPath: string,
   streamLogger
 ) => {
-  await streamLogger.info("getting schema...");
   const schemaDoc = await db.doc(schemaDocPath).get();
   const schemaData = schemaDoc.data();
   try {
@@ -100,7 +99,7 @@ export const combineConfigs = (configs: any[]) =>
     }
   );
 
-export const generateFile = async (configData) => {
+export const generateFile = async (configData, buildFolderTimestamp) => {
   const {
     derivativeColumns,
     defaultValueColumns,
@@ -112,7 +111,7 @@ export const generateFile = async (configData) => {
     projectId,
     region,
   } = configData;
-  const data = {
+  const serializedConfigData = {
     fieldTypes: JSON.stringify(fieldTypes),
     triggerPath: JSON.stringify(triggerPath),
     functionName: JSON.stringify(functionName),
@@ -126,13 +125,16 @@ export const generateFile = async (configData) => {
     region: JSON.stringify(region),
   };
   const baseFile = `import fetch from "node-fetch";\n import rowy from "./rowy";\n`;
-  const fileData = Object.keys(data).reduce((acc, currKey) => {
-    return `${acc}\nexport const ${currKey} = ${data[currKey]}`;
+  const fileData = Object.keys(serializedConfigData).reduce((acc, currKey) => {
+    return `${acc}\nexport const ${currKey} = ${serializedConfigData[currKey]}`;
   }, ``);
   const serializedConfig = beautify(baseFile + fileData, { indent_size: 2 });
   const path = require("path");
   fs.writeFileSync(
-    path.resolve(__dirname, "../../functions/src/functionConfig.ts"),
+    path.resolve(
+      __dirname,
+      `../../builds/${buildFolderTimestamp}/src/functionConfig.ts`
+    ),
     serializedConfig
   );
   return Promise.all([

@@ -8,11 +8,20 @@ export function execute(command: string, callback: any) {
   });
 }
 
-export const asyncExecute = async (command: string, callback: any) =>
-  new Promise(async (resolve, reject) => {
+export const asyncExecute = async (
+  command: string,
+  callback: any,
+  streamLogger?
+) => {
+  streamLogger?.info(`Executing: ${command}`);
+  return new Promise(async (resolve, reject) => {
     child.exec(command, async function (error, stdout, stderr) {
       console.log({ error, stdout, stderr });
+      streamLogger?.info(
+        `stdout: ${JSON.stringify({ error, stdout, stderr })}`
+      );
       await callback(error, stdout, stderr);
       resolve(!error);
     });
   });
+};

@@ -11,17 +11,12 @@ import { commandErrorHandler, createStreamLogger } from "./logger";
 import firebase from "firebase-admin";
 import { getProjectId } from "../metadataService";
 import { db } from "../firebaseConfig";
-let isBuilding = false;
+
 export const functionBuilder = async (
   req: any,
   user: firebase.auth.UserRecord
 ) => {
   try {
-    if (isBuilding) {
-      return { success: false, message: `another build currently in progress` };
-    } else {
-      isBuilding = true;
-    }
     const { tablePath, tableConfigPath } = req.body;
     const pathname = req.body.pathname.substring(1);
     if (!pathname || !tablePath)
@@ -45,8 +40,12 @@ export const functionBuilder = async (
       table?.triggerDepth
     );
     const functionConfigPath = `_rowy_/settings/functions/${functionName}`;
+
     const streamLogger = await createStreamLogger(functionConfigPath);
-    await streamLogger.info("streamLogger created");
+    await streamLogger.info(`Build started`);
+    const buildFolderTimestamp = Date.now();
+    const buildPath = `build/functionBuilder/builds/${buildFolderTimestamp}`;
+
     try {
       const triggerPath = getTriggerPath(
         collectionType,
@@ -71,6 +70,13 @@ export const functionBuilder = async (
         }),
       ]);
 
+      // duplicate functions folder to build folder
+      await streamLogger.info(`Duplicating functions template to ${buildPath}`);
+      await asyncExecute(
+        `mkdir -m 777 -p ${buildPath}; cp -Rp build/functionBuilder/functions/* ${buildPath}`,
+        commandErrorHandler({ user }, streamLogger)
+      );
+
       const success = await generateConfig(
         {
           functionConfigPath,
@@ -80,52 +86,38 @@ export const functionBuilder = async (
           region,
         },
         user,
-        streamLogger
+        streamLogger,
+        buildPath,
+        buildFolderTimestamp
       );
       if (!success) {
-        await streamLogger.error("generateConfig failed to complete");
+        await streamLogger.error("generateConfig failed");
         await streamLogger.fail();
         return {
           success: false,
           reason: `generateConfig failed to complete`,
         };
       }
-      await streamLogger.info("generateConfig success");
 
+      await streamLogger.info("Installing dependencies...");
       await asyncExecute(
-        `cd build/functionBuilder/functions; \
-     yarn install`,
+        `cd ${buildPath}; yarn install`,
         commandErrorHandler({ user }, streamLogger)
       );
 
-      streamLogger.info(`deploying ${functionName} to ${projectId}`);
+      await streamLogger.info(`Deploying ${functionName} to ${projectId}`);
       await asyncExecute(
-        `cd build/functionBuilder/functions; \
-       yarn deploy \
-        --project ${projectId} \
-        --only functions`,
-        commandErrorHandler({ user }, streamLogger)
+        `cd ${buildPath}; yarn deploy --project ${projectId} --only functions`,
+        commandErrorHandler({ user }, streamLogger),
+        streamLogger
       );
-      // remove config file
-      await asyncExecute(
-        `rm build/functionBuilder/functions/src/functionConfig.ts`,
-        commandErrorHandler({ user }, streamLogger)
-      );
-      await asyncExecute(
-        `rm build/functionBuilder/functions/src/functionConfig.js`,
-        commandErrorHandler({ user }, streamLogger)
-      );
-      isBuilding = false;
       await streamLogger.end();
       return {
         success: true,
       };
     } catch (error) {
-      isBuilding = false;
       console.log(error);
-      await streamLogger.error(
-        "Function Builder Failed:\n" + JSON.stringify(error)
-      );
+      await streamLogger.error("Build Failed:\n" + JSON.stringify(error));
       await streamLogger.fail();
       return {
         success: false,
@@ -133,7 +125,6 @@ export const functionBuilder = async (
       };
     }
   } catch (error) {
-    isBuilding = false;
     console.log(error);
     return {
       success: false,
