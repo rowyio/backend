@@ -1,12 +1,5 @@
 import https from "https";
-import { exec } from "child_process";
-function execute(command: string, callback: any) {
-  console.log(command);
-  exec(command, function (error, stdout, stderr) {
-    console.log({ error, stdout, stderr });
-    callback(stdout);
-  });
-}
+import { asyncExecute } from "./terminalUtils";
 
 export function httpsPost({ body, ...options }: any) {
   return new Promise((resolve, reject) => {
@@ -68,3 +61,34 @@ export const getRequiredPackages = (code: string) =>
         version: getVersion(req),
       })) ?? []
     : [];
+
+export const installDependenciesIfMissing = async (
+  code: string,
+  name: string
+) => {
+  const requiredDependencies = getRequiredPackages(code);
+  const packageJson = require(`../package.json`);
+  const installedDependencies = Object.keys(packageJson.dependencies);
+  const requiredDependenciesToInstall = requiredDependencies?.filter(
+    (i) => !installedDependencies.includes(i.name)
+  );
+  const dependenciesString = requiredDependenciesToInstall.reduce(
+    (acc, currDependency) => {
+      return `${acc} ${currDependency.name}@${
+        currDependency.version ?? "latest"
+      }`;
+    },
+    ""
+  );
+  console.log(`Installing dependencies for ${name}: ${dependenciesString}`);
+  if (dependenciesString.trim().length >= 0) {
+    const success = await asyncExecute(`cd ..; yarn add ${dependenciesString}`);
+    if (!success) {
+      console.error("Dependencies could not be installed");
+      throw new Error(
+        `Cannot install dependencies for ${name}: ${dependenciesString}`
+      );
+    }
+    console.log("Dependencies installed successfully");
+  }
+};
