@@ -1,10 +1,11 @@
-import _get from "lodash/get";
 import { db, auth } from "../firebaseConfig";
 import { Request, Response } from "express";
 import { User } from "../types/User";
 import fetch from "node-fetch";
 import { DocumentReference } from "firebase-admin/firestore";
 import rowy from "./rowy";
+import { getRequiredPackages } from "../utils";
+import { asyncExecute } from "../terminalUtils";
 
 type RequestData = {
   refs?: DocumentReference[]; // used in bulkAction
@@ -53,6 +54,39 @@ export const evaluateDerivative = async (req: Request, res: Response) => {
       `{
       ${script}
     }`;
+
+    // Install dependencies
+    const requiredDependencies = getRequiredPackages(code);
+    const packageJson = require(`../../package.json`);
+    const installedDependencies = Object.keys(packageJson.dependencies);
+    const requiredDependenciesToInstall = requiredDependencies?.filter(
+      (i) => !installedDependencies.includes(i.name)
+    );
+    const dependenciesString = requiredDependenciesToInstall.reduce(
+      (acc, currDependency) => {
+        return `${acc} ${currDependency.name}@${
+          currDependency.version ?? "latest"
+        }`;
+      },
+      ""
+    );
+    console.log(
+      `Installing dependencies for derivative ${columnKey} in ${collectionPath}: ${dependenciesString}`
+    );
+    if (dependenciesString.trim().length >= 0) {
+      const success = await asyncExecute(
+        `cd ../..;yarn add ${dependenciesString}`
+      );
+      if (!success) {
+        console.error("Dependencies could not be installed");
+        return res.send({
+          success: false,
+          message: `Cannot install dependencies: ${dependenciesString}`,
+        });
+      }
+      console.log("Dependencies installed successfully");
+    }
+
     const derivativeFunction = eval(
       `async({row,db,ref,auth,fetch,rowy})=>` + code.replace(/^.*=>/, "")
     );
@@ -101,10 +135,7 @@ export const evaluateDerivative = async (req: Request, res: Response) => {
       });
       results.push(...(await Promise.all(batchResults)));
       await batch.commit();
-      // do whatever
     }
-    // const tasks = rowSnapshots
-    // const results = await Promise.all(tasks);
     if (results.length === 1) {
       return res.send(results[0]);
     }

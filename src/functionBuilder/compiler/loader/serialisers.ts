@@ -1,40 +1,11 @@
 import { IExtension } from "./types";
+import { getRequiredPackages } from "../../../utils";
 
 const removeInlineVersioning = (code) =>
   code.replace(
     /(?:require\(.*)@\d+\.\d+\.\d+/g,
     (capture) => capture.split("@")[0]
   );
-
-const getRequires = (code: string) =>
-  code.match(/(?<=((= |=|\n* )require\(("|')))[^.].*?(?=("|')\))/g);
-/**
- * checks if dependency is @google-cloud/... or @mui/...
- * @param dependency
- * @returns boolean
- */
-const isGloballyScoped = (dependency: string) => !dependency.startsWith("@");
-const removeVersion = (dependency: string) =>
-  isGloballyScoped(dependency)
-    ? dependency.split("@")[0]
-    : dependency.split(/(@[^@]*)/)[1] ?? dependency;
-const getPackageName = (dependency: string) =>
-  isGloballyScoped(dependency)
-    ? removeVersion(dependency).split("/")[0]
-    : removeVersion(dependency).split("/").splice(0, 2).join("/");
-
-const getVersion = (dependency: string) => {
-  const sections = dependency.split("@");
-  const index = isGloballyScoped(dependency) ? 1 : 2;
-  return sections[index] ?? "latest";
-};
-const getRequiredPackages = (code: string) =>
-  code
-    ? getRequires(code)?.map((req) => ({
-        name: getPackageName(req),
-        version: getVersion(req),
-      })) ?? []
-    : [];
 
 /* Convert extension objects into a single readable string */
 export const serialiseExtension = (extensions: IExtension[]): string =>
