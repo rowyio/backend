@@ -80,8 +80,11 @@ export const installDependenciesIfMissing = async (
     },
     ""
   );
+
   console.log(`Installing dependencies for ${name}: ${dependenciesString}`);
-  if (dependenciesString.trim().length >= 0) {
+  const yarnStartTime = Date.now();
+  const hasDependencies = dependenciesString.trim().length > 0;
+  if (hasDependencies) {
     const success = await asyncExecute(`cd ..; yarn add ${dependenciesString}`);
     if (!success) {
       console.error("Dependencies could not be installed");
@@ -91,4 +94,11 @@ export const installDependenciesIfMissing = async (
     }
     console.log("Dependencies installed successfully");
   }
+  const yarnFinishTime = Date.now();
+  return {
+    yarnStartTime,
+    yarnFinishTime,
+    hasDependencies,
+    dependenciesString,
+  };
 };

@@ -6,6 +6,7 @@ import fetch from "node-fetch";
 import { FieldValue } from "firebase-admin/firestore";
 import rowy from "./rowy";
 import { installDependenciesIfMissing } from "../utils";
+import { telemetryRuntimeDependencyPerformance } from "../rowyService";
 
 type Ref = {
   id: string;
@@ -43,6 +44,7 @@ export const authUser2rowyUser = (currentUser: User, data?: any) => {
 
 export const actionScript = async (req: Request, res: Response) => {
   try {
+    const functionStartTime = Date.now();
     const user = res.locals.user;
     const userRoles = user.roles;
     if (!userRoles || userRoles.length === 0)
@@ -79,13 +81,14 @@ export const actionScript = async (req: Request, res: Response) => {
     }
     const codeToRun = action === "undo" ? undoFunctionBody : runFunctionBody;
 
-    await installDependenciesIfMissing(
-      codeToRun,
-      `action ${column.key} in ${ref.path}`
-    );
+    const { yarnStartTime, yarnFinishTime, dependenciesString } =
+      await installDependenciesIfMissing(
+        codeToRun,
+        `action ${column.key} in ${ref.path}`
+      );
 
     const _actionScript = eval(
-      `async({row,db, ref,auth,utilFns,actionParams,user,fetch,rowy})=> ${codeToRun}`
+      `async ({ row, db, ref, auth, utilFns, actionParams, user, fetch, rowy }) => ${codeToRun}`
     );
     const getRows = refs
       ? refs.map(async (r) => db.doc(r.path).get())
@@ -154,6 +157,18 @@ export const actionScript = async (req: Request, res: Response) => {
     if (results.length === 1) {
       return res.send(results[0]);
     }
+
+    const functionEndTime = Date.now();
+    try {
+      await telemetryRuntimeDependencyPerformance({
+        functionStartTime,
+        functionEndTime,
+        yarnStartTime,
+        yarnFinishTime,
+        dependenciesString,
+      });
+    } catch (e) {}
+
     return res.send(results);
   } catch (error: any) {
     return res.send({
