@@ -1,4 +1,3 @@
-import _get from "lodash/get";
 import { db, auth, storage } from "../firebaseConfig";
 import { Request, Response } from "express";
 import { User } from "../types/User";
@@ -7,6 +6,8 @@ import { DocumentReference } from "firebase-admin/firestore";
 import rowy, { Rowy } from "./rowy";
 import { Auth } from "firebase-admin/auth";
 import * as admin from "firebase-admin";
+import { installDependenciesIfMissing } from "../utils";
+import { telemetryRuntimeDependencyPerformance } from "../rowyService";
 
 type ConnectorRequest = {
   rowDocPath: string;
@@ -43,6 +44,7 @@ export const authUser2rowyUser = (currentUser: User, data?: any) => {
 // TODO convert to schema publisher/subscriber
 export const connector = async (req: Request, res: Response) => {
   try {
+    const functionStartTime = Date.now();
     const user = res.locals.user;
     const userRoles = user.roles;
     if (!userRoles || userRoles.length === 0)
@@ -60,8 +62,16 @@ export const connector = async (req: Request, res: Response) => {
     const config = schemaDocData.columns[columnKey].config;
     const { connectorFn } = config;
     const connectorFnBody = connectorFn.replace(/^.*=>/, "");
+
+    const { yarnStartTime, yarnFinishTime, dependenciesString } =
+      await installDependenciesIfMissing(
+        connectorFnBody,
+        `connector ${columnKey} in ${rowDocPath}`
+      );
+
     const connectorScript = eval(
-      `async({row,db,ref,auth,fetch,rowy,storage})=>` + connectorFnBody
+      `async ({ row, db, ref, auth, fetch, rowy, storage }) =>` +
+        connectorFnBody
     ) as Connector;
     const pattern = /row(?!y)/;
     const functionUsesRow = pattern.test(connectorFnBody);
@@ -79,6 +89,18 @@ export const connector = async (req: Request, res: Response) => {
       storage,
       rowy,
     });
+
+    const functionEndTime = Date.now();
+    try {
+      await telemetryRuntimeDependencyPerformance({
+        functionStartTime,
+        functionEndTime,
+        yarnStartTime,
+        yarnFinishTime,
+        dependenciesString,
+      });
+    } catch (e) {}
+
     return res.send({
       success: true,
       hits: results,

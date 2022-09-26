@@ -1,10 +1,11 @@
-import _get from "lodash/get";
 import { db, auth } from "../firebaseConfig";
 import { Request, Response } from "express";
 import { User } from "../types/User";
 import fetch from "node-fetch";
 import { DocumentReference } from "firebase-admin/firestore";
 import rowy from "./rowy";
+import { installDependenciesIfMissing } from "../utils";
+import { telemetryRuntimeDependencyPerformance } from "../rowyService";
 
 type RequestData = {
   refs?: DocumentReference[]; // used in bulkAction
@@ -29,6 +30,7 @@ export const authUser2rowyUser = (currentUser: User, data?: any) => {
 
 export const evaluateDerivative = async (req: Request, res: Response) => {
   try {
+    const functionStartTime = Date.now();
     const user = res.locals.user;
     const userRoles = user.roles;
     if (!userRoles || userRoles.length === 0)
@@ -53,8 +55,16 @@ export const evaluateDerivative = async (req: Request, res: Response) => {
       `{
       ${script}
     }`;
+
+    const { yarnStartTime, yarnFinishTime, dependenciesString } =
+      await installDependenciesIfMissing(
+        code,
+        `derivative ${columnKey} in ${collectionPath}`
+      );
+
     const derivativeFunction = eval(
-      `async({row,db,ref,auth,fetch,rowy})=>` + code.replace(/^.*=>/, "")
+      `async ({ row, db, ref, auth, fetch, rowy }) =>` +
+        code.replace(/^.*=>/, "")
     );
     let rowSnapshots: FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData>[] =
       [];
@@ -101,13 +111,22 @@ export const evaluateDerivative = async (req: Request, res: Response) => {
       });
       results.push(...(await Promise.all(batchResults)));
       await batch.commit();
-      // do whatever
     }
-    // const tasks = rowSnapshots
-    // const results = await Promise.all(tasks);
     if (results.length === 1) {
       return res.send(results[0]);
     }
+
+    const functionEndTime = Date.now();
+    try {
+      await telemetryRuntimeDependencyPerformance({
+        functionStartTime,
+        functionEndTime,
+        yarnStartTime,
+        yarnFinishTime,
+        dependenciesString,
+      });
+    } catch (e) {}
+
     return res.send(results);
   } catch (error: any) {
     return res.send({

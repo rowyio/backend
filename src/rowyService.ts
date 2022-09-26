@@ -1,5 +1,6 @@
 import axios from "axios";
 import { generateServiceAccessToken, getProjectId } from "./metadataService";
+
 const meta = require("../package.json");
 
 const getAxiosInstance = async () => {
@@ -53,6 +54,7 @@ export const telemetry = async (event, token) => {
   }
   return telemetryInstance.post(`monitor`, body);
 };
+
 export const telemetryError = async (event, token, error) => {
   if (!projectId) {
     projectId = await getProjectId();
@@ -72,6 +74,28 @@ export const telemetryError = async (event, token, error) => {
   }
   console.log("error", body);
   return telemetryInstance.post(`error`, body);
+};
+
+export const telemetryRuntimeDependencyPerformance = async ({
+  functionStartTime,
+  functionEndTime,
+  yarnStartTime,
+  yarnFinishTime,
+  dependenciesString,
+}) => {
+  if (!projectId) {
+    projectId = await getProjectId();
+  }
+  const body = {
+    projectId,
+    source: meta.name,
+    functionStartTime,
+    functionEndTime,
+    yarnStartTime,
+    yarnFinishTime,
+    dependenciesString,
+  };
+  return telemetryInstance.post(`runtime-dependency-performance`, body);
 };
 
 export const inviteUserService = async (
