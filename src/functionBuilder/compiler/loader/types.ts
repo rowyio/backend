@@ -39,4 +39,8 @@ export interface TableConfig {
   documentSelectColumns: any[];
   fieldTypes: any;
   extensions: IExtension[];
+  searchIndex?: {
+    id: string;
+    fields: string[];
+  };
 }
