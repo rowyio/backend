@@ -28,10 +28,14 @@ export const data2storage = async (
     bucket?: string;
     folderPath?: string;
     fileName?: string;
+    fileType?: { mime: string; ext: string };
+    cacheControl?: string;
   } = {}
 ) => {
   const bucket = storage.bucket(options.bucket ?? `${projectId}.appspot.com`);
-  const fileType = Buffer.isBuffer(data)
+  const fileType = options.fileType
+    ? options.fileType
+    : Buffer.isBuffer(data)
     ? await fromBuffer(data)
     : {
         ext: ".txt",
@@ -50,6 +54,7 @@ export const data2storage = async (
     metadata: {
       contentType: fileType.mime,
       metadata: { firebaseStorageDownloadTokens: token },
+      cacheControl: options.cacheControl ?? `public,max-age=3600`,
     },
   });
   return {

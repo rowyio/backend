@@ -30,6 +30,7 @@ export const data2storage = async (
     folderPath?: string;
     fileName?: string;
     fileType?: { mime: string; ext: string };
+    cacheControl?: string;
   } = {}
 ) => {
   const projectId = await getProjectId();
@@ -55,6 +56,7 @@ export const data2storage = async (
     metadata: {
       contentType: fileType.mime,
       metadata: { firebaseStorageDownloadTokens: token },
+      cacheControl: options.cacheControl ?? `public,max-age=3600`,
     },
   });
   return {
