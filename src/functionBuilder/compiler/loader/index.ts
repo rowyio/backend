@@ -46,12 +46,15 @@ export const getConfigFromTableSchema = async (
       };
     }, {});
 
+    const runtimeOptions = schemaData.runtimeOptions ?? {};
+
     const config: TableConfig = {
       derivativeColumns,
       defaultValueColumns,
       documentSelectColumns,
       fieldTypes,
       extensions,
+      runtimeOptions,
     };
     if (schemaData.searchIndex) {
       config.searchIndex = {
@@ -82,6 +85,7 @@ export const combineConfigs = (configs: any[]) =>
         fieldTypes,
         extensions,
         searchIndex,
+        runtimeOptions,
       } = cur;
       return {
         derivativeColumns: [...acc.derivativeColumns, ...derivativeColumns],
@@ -100,6 +104,7 @@ export const combineConfigs = (configs: any[]) =>
         searchIndices: searchIndex
           ? [...acc.searchIndices, searchIndex]
           : acc.searchIndices,
+        runtimeOptions,
       };
     },
     {
@@ -125,6 +130,7 @@ export const generateFile = async (configData, buildFolderTimestamp) => {
     projectId,
     region,
     searchHost,
+    runtimeOptions,
   } = configData;
   const serializedConfigData = {
     fieldTypes: JSON.stringify(fieldTypes),
@@ -136,6 +142,7 @@ export const generateFile = async (configData, buildFolderTimestamp) => {
     extensionsConfig: serialiseExtension(extensions),
     runtimeOptions: JSON.stringify({
       serviceAccount: `rowy-functions@${projectId}.iam.gserviceaccount.com`,
+      ...runtimeOptions,
     }),
     region: JSON.stringify(region),
     searchHost: JSON.stringify(searchHost),

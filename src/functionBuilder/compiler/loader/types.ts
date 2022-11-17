@@ -29,6 +29,12 @@ export interface IExtension {
   extensionBody: string;
   conditions: string;
 }
+
+export interface IRuntimeOptions {
+  memory?: "128MB" | "256MB" | "512MB" | "1GB" | "2GB" | "4GB" | "8GB";
+  timeoutSeconds?: number;
+}
+
 export type TriggerPathType =
   | "collection"
   | "collectionGroup"
@@ -43,4 +49,5 @@ export interface TableConfig {
     id: string;
     fields: string[];
   };
+  runtimeOptions: IRuntimeOptions;
 }
