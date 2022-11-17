@@ -32,7 +32,6 @@ export const functionBuilder = async (
       tables
     );
 
-    const region = settings.get("cloudFunctionsRegion") ?? "us-central1";
     const table = tables.find((t: any) => t.collection === tablePath);
     const functionName = getFunctionName(
       collectionType,
@@ -83,7 +82,7 @@ export const functionBuilder = async (
           tableSchemaPaths,
           functionName,
           triggerPath,
-          region,
+          rowySettings: settings.data(),
         },
         user,
         streamLogger,

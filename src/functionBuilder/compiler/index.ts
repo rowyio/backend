@@ -13,6 +13,7 @@ import { db } from "../../firebaseConfig";
 const path = require("path");
 import admin from "firebase-admin";
 import { getProjectId } from "../../metadataService";
+import { DocumentData } from "firebase-admin/firestore";
 
 export default async function generateConfig(
   data: {
@@ -20,7 +21,7 @@ export default async function generateConfig(
     functionName: string;
     triggerPath: string;
     tableSchemaPaths: string[];
-    region: string;
+    rowySettings: DocumentData;
   },
   user: admin.auth.UserRecord,
   streamLogger,
@@ -38,7 +39,7 @@ export default async function generateConfig(
     tableSchemaPaths,
     triggerPath,
     functionName,
-    region,
+    rowySettings,
   } = data;
   const configs = (
     await Promise.all(
@@ -58,6 +59,8 @@ export default async function generateConfig(
   );
 
   await streamLogger.info(`Generating config file...`);
+  const region = rowySettings.cloudFunctionsRegion ?? "us-central1";
+  const searchHost = rowySettings.services?.search ?? null;
   await generateFile(
     {
       ...combinedConfig,
@@ -65,6 +68,7 @@ export default async function generateConfig(
       triggerPath,
       projectId,
       region,
+      searchHost,
     },
     buildFolderTimestamp
   );

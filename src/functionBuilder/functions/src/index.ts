@@ -6,6 +6,7 @@ const functionConfig: any = config;
 import { getTriggerType, changedDocPath } from "./utils";
 import propagate from "./propagates";
 import initialize from "./initialize";
+import searchSync from "./searchSync";
 export const R = {
   [functionConfig.functionName]: functions
     .region(functionConfig.region)
@@ -60,6 +61,14 @@ export const R = {
         }
         if (Object.keys(docUpdates).length !== 0) {
           promises.push(change.after.ref.update(docUpdates));
+        }
+        if (functionConfig.searchIndices.length > 0) {
+          const searchSyncPromise = await searchSync(
+            functionConfig.searchIndices,
+            triggerType,
+            functionConfig.searchHost
+          )(change);
+          promises.concat(searchSyncPromise);
         }
         await Promise.all(promises);
       } catch (err) {

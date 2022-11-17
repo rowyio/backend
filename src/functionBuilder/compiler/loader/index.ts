@@ -17,17 +17,18 @@ export const getConfigFromTableSchema = async (
   const schemaData = schemaDoc.data();
   try {
     if (!schemaData) throw new Error("no schema found");
-    const derivativeColumns = Object.values(schemaData.columns).filter(
+    const columnsArray = Object.values(schemaData.columns);
+    const derivativeColumns = columnsArray.filter(
       (col: any) =>
         col.type === "DERIVATIVE" &&
         col.config?.listenerFields &&
         col.config?.listenerFields.length > 0
     );
-    const defaultValueColumns = Object.values(schemaData.columns).filter(
-      (col: any) => Boolean(col.config?.defaultValue)
+    const defaultValueColumns = columnsArray.filter((col: any) =>
+      Boolean(col.config?.defaultValue)
     );
 
-    const documentSelectColumns = Object.values(schemaData.columns).filter(
+    const documentSelectColumns = columnsArray.filter(
       (col: any) => col.type === "DOCUMENT_SELECT" && col.config?.trackedFields
     );
 
@@ -45,13 +46,20 @@ export const getConfigFromTableSchema = async (
       };
     }, {});
 
-    const config = {
+    const config: TableConfig = {
       derivativeColumns,
       defaultValueColumns,
       documentSelectColumns,
       fieldTypes,
       extensions,
     };
+    if (schemaData.searchIndex) {
+      config.searchIndex = {
+        id: schemaData.searchIndex,
+        fields: columnsArray.map((c: any) => c.key),
+      };
+    }
+
     await Promise.all(
       Object.keys(config).map(async (key) =>
         streamLogger.info(`${key}: ${JSON.stringify(config[key])}`)
@@ -73,6 +81,7 @@ export const combineConfigs = (configs: any[]) =>
         documentSelectColumns,
         fieldTypes,
         extensions,
+        searchIndex,
       } = cur;
       return {
         derivativeColumns: [...acc.derivativeColumns, ...derivativeColumns],
@@ -88,6 +97,9 @@ export const combineConfigs = (configs: any[]) =>
         extensions: extensions
           ? [...acc.extensions, ...extensions]
           : acc.extensions,
+        searchIndices: searchIndex
+          ? [...acc.searchIndices, searchIndex]
+          : acc.searchIndices,
       };
     },
     {
@@ -96,6 +108,7 @@ export const combineConfigs = (configs: any[]) =>
       documentSelectColumns: [],
       fieldTypes: {},
       extensions: [],
+      searchIndices: [],
     }
   );
 
@@ -104,12 +117,14 @@ export const generateFile = async (configData, buildFolderTimestamp) => {
     derivativeColumns,
     defaultValueColumns,
     documentSelectColumns,
+    searchIndices,
     fieldTypes,
     extensions,
     triggerPath,
     functionName,
     projectId,
     region,
+    searchHost,
   } = configData;
   const serializedConfigData = {
     fieldTypes: JSON.stringify(fieldTypes),
@@ -123,6 +138,8 @@ export const generateFile = async (configData, buildFolderTimestamp) => {
       serviceAccount: `rowy-functions@${projectId}.iam.gserviceaccount.com`,
     }),
     region: JSON.stringify(region),
+    searchHost: JSON.stringify(searchHost),
+    searchIndices: JSON.stringify(searchIndices),
   };
   const baseFile = `import fetch from "node-fetch";\n import rowy from "./rowy";\n`;
   const fileData = Object.keys(serializedConfigData).reduce((acc, currKey) => {
