@@ -52,7 +52,7 @@ export const serialiseDerivativeColumns = (derivativeColumns: any[]): string =>
       : `{\n${script}\n}`;
     return `${acc}{\nfieldName:'${currColumn.key}'
     ,requiredPackages:${JSON.stringify(getRequiredPackages(functionBody))}
-    ,evaluate:async ({row,ref,db,auth,storage,utilFns}) =>
+    ,evaluate:async ({row,ref,db,auth,storage,utilFns,logging}) =>
       ${removeInlineVersioning(functionBody)}
   ,\nlistenerFields:[${listenerFields
     .map((fieldKey: string) => `"${fieldKey}"`)
