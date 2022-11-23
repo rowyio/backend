@@ -6,6 +6,7 @@ import { DocumentReference } from "firebase-admin/firestore";
 import rowy from "./rowy";
 import { installDependenciesIfMissing } from "../utils";
 import { telemetryRuntimeDependencyPerformance } from "../rowyService";
+import { LoggingFactory } from "../logging";
 
 type RequestData = {
   refs?: DocumentReference[]; // used in bulkAction
@@ -62,8 +63,13 @@ export const evaluateDerivative = async (req: Request, res: Response) => {
         `derivative ${columnKey} in ${collectionPath}`
       );
 
+    const logging = await LoggingFactory.createDerivativeLogging(
+      columnKey,
+      schemaDoc.ref.id
+    );
+
     const derivativeFunction = eval(
-      `async ({ row, db, ref, auth, fetch, rowy }) =>` +
+      `async ({ row, db, ref, auth, fetch, rowy, logging }) =>` +
         code.replace(/^.*=>/, "")
     );
     let rowSnapshots: FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData>[] =
@@ -90,6 +96,7 @@ export const evaluateDerivative = async (req: Request, res: Response) => {
             ref: doc.ref,
             fetch,
             rowy,
+            logging,
           });
           const update = { [columnKey]: result };
           if (schemaDocData?.audit !== false) {

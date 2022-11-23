@@ -12,12 +12,20 @@ interface RowyLogging {
 class LoggingFactory {
   public static async createActionLogging(fieldName: string, rowId: string) {
     const projectId = await getProjectId();
-    return new LoggingAction(projectId, fieldName, rowId);
+    return new LoggingFieldAndRow(projectId, fieldName, rowId, "action");
   }
 
   public static async createConnectorLogging(fieldName: string, rowId: string) {
     const projectId = await getProjectId();
-    return new LoggingConnector(projectId, fieldName, rowId);
+    return new LoggingFieldAndRow(projectId, fieldName, rowId, "connector");
+  }
+
+  public static async createDerivativeLogging(
+    fieldName: string,
+    rowId: string
+  ) {
+    const projectId = await getProjectId();
+    return new LoggingFieldAndRow(projectId, fieldName, rowId, "derivative");
   }
 }
 
@@ -47,12 +55,17 @@ class LoggingAbstract implements RowyLogging {
   }
 }
 
-class LoggingAction extends LoggingAbstract implements RowyLogging {
+class LoggingFieldAndRow extends LoggingAbstract implements RowyLogging {
   private readonly fieldName: string;
   private readonly rowId: string;
 
-  constructor(projectId: string, fieldName: string, rowId: string) {
-    super(projectId, "action");
+  constructor(
+    projectId: string,
+    fieldName: string,
+    rowId: string,
+    functionType: FunctionType
+  ) {
+    super(projectId, functionType);
     this.fieldName = fieldName;
     this.rowId = rowId;
   }
@@ -64,32 +77,7 @@ class LoggingAction extends LoggingAbstract implements RowyLogging {
     };
     const payloadSize = JSON.stringify(payload).length;
     const entry = log.entry(metadata, {
-      functionType: this.functionType,
-      fieldName: this.fieldName,
-      rowId: this.rowId,
-      payload: payloadSize > 250000 ? { v: "payload too large" } : payload,
-    });
-    await log.write(entry);
-  }
-}
-
-class LoggingConnector extends LoggingAbstract implements RowyLogging {
-  private readonly fieldName: string;
-  private readonly rowId: string;
-
-  constructor(projectId: string, fieldName: string, rowId: string) {
-    super(projectId, "connector");
-    this.fieldName = fieldName;
-    this.rowId = rowId;
-  }
-
-  async logWithSeverity(payload: any, severity: string) {
-    const log = this.logging.log(`rowy-logging`);
-    const metadata = {
-      severity,
-    };
-    const payloadSize = JSON.stringify(payload).length;
-    const entry = log.entry(metadata, {
+      loggingSource: "backend-scripts",
       functionType: this.functionType,
       fieldName: this.fieldName,
       rowId: this.rowId,
