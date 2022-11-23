@@ -88,7 +88,7 @@ export const actionScript = async (req: Request, res: Response) => {
       );
 
     const _actionScript = eval(
-      `async ({ row, db, ref, auth, utilFns, actionParams, user, fetch, rowy }) => ${codeToRun}`
+      `async ({ row, db, ref, auth, utilFns, actionParams, user, fetch, rowy, tableSchema }) => ${codeToRun}`
     );
     const getRows = refs
       ? refs.map(async (r) => db.doc(r.path).get())
@@ -118,6 +118,7 @@ export const actionScript = async (req: Request, res: Response) => {
           user: { ...authUser2rowyUser(user), roles: userRoles },
           fetch,
           rowy,
+          tableSchema: schemaDocData,
         });
         if (result.success || result.status) {
           const cellValue = {
