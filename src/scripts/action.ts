@@ -7,6 +7,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import rowy from "./rowy";
 import { installDependenciesIfMissing } from "../utils";
 import { telemetryRuntimeDependencyPerformance } from "../rowyService";
+import { LoggingFactory } from "../logging";
 
 type Ref = {
   id: string;
@@ -87,8 +88,13 @@ export const actionScript = async (req: Request, res: Response) => {
         `action ${column.key} in ${ref.path}`
       );
 
+    const logging = await LoggingFactory.createActionLogging(
+      column.key,
+      ref.id
+    );
+
     const _actionScript = eval(
-      `async ({ row, db, ref, auth, utilFns, actionParams, user, fetch, rowy }) => ${codeToRun}`
+      `async ({ row, db, ref, auth, utilFns, actionParams, user, fetch, rowy, logging }) => ${codeToRun}`
     );
     const getRows = refs
       ? refs.map(async (r) => db.doc(r.path).get())
@@ -118,6 +124,7 @@ export const actionScript = async (req: Request, res: Response) => {
           user: { ...authUser2rowyUser(user), roles: userRoles },
           fetch,
           rowy,
+          logging,
         });
         if (result.success || result.status) {
           const cellValue = {

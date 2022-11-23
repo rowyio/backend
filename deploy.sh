@@ -1,6 +1,6 @@
 #!/bin/bash
 name=rowy-backend
-region=us-central1
+region=asia-southeast1
 helpFunction()
 {
    echo "Usage: ./deploy.sh --project [YOUR GCLOUD PROJECT ID]"
@@ -19,7 +19,7 @@ while test $# -gt 0; do
                    return 1;
                    ;;
           esac
-  done  
+  done
 
 if [[ -z "$project_id" ]];
 then
