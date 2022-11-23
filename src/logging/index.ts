@@ -62,4 +62,4 @@ export async function getLogs(req: Request) {
   });
 }
 
-export { LoggingFactory } from "./LoggingFactory";
+export { LoggingFactory, RowyLogging } from "./LoggingFactory";

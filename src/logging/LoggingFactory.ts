@@ -14,26 +14,52 @@ class LoggingFactory {
     const projectId = await getProjectId();
     return new LoggingAction(projectId, fieldName, rowId);
   }
+
+  public static async createConnectorLogging(fieldName: string, rowId: string) {
+    const projectId = await getProjectId();
+    return new LoggingConnector(projectId, fieldName, rowId);
+  }
 }
 
-class LoggingAction implements RowyLogging {
-  private readonly functionType: FunctionType = "action";
-  private readonly fieldName: string;
-  private readonly rowId: string;
-  private readonly logging: Logging;
+class LoggingAbstract implements RowyLogging {
+  protected readonly functionType;
+  protected readonly logging: Logging;
 
-  constructor(projectId: string, fieldName: string, rowId: string) {
-    this.fieldName = fieldName;
-    this.rowId = rowId;
+  constructor(projectId: string, functionType: FunctionType) {
+    this.functionType = functionType;
     this.logging = new Logging({ projectId });
   }
 
-  private async logWithSeverity(payload: any, severity: string) {
+  protected async logWithSeverity(payload: any, severity: string) {
+    throw new Error("logWithSeverity must be implemented");
+  }
+
+  async log(payload: any) {
+    await this.logWithSeverity(payload, "DEFAULT");
+  }
+
+  async warn(payload: any) {
+    await this.logWithSeverity(payload, "WARNING");
+  }
+
+  async error(payload: any) {
+    await this.logWithSeverity(payload, "ERROR");
+  }
+}
+
+class LoggingAction extends LoggingAbstract implements RowyLogging {
+  private readonly fieldName: string;
+  private readonly rowId: string;
+
+  constructor(projectId: string, fieldName: string, rowId: string) {
+    super(projectId, "action");
+    this.fieldName = fieldName;
+    this.rowId = rowId;
+  }
+
+  async logWithSeverity(payload: any, severity: string) {
     const log = this.logging.log(`rowy-logging`);
     const metadata = {
-      resource: {
-        type: "global",
-      },
       severity,
     };
     const payloadSize = JSON.stringify(payload).length;
@@ -45,18 +71,31 @@ class LoggingAction implements RowyLogging {
     });
     await log.write(entry);
   }
+}
 
-  async log(payload: any) {
-    console.log("executing: log");
-    await this.logWithSeverity(payload, "DEFAULT");
+class LoggingConnector extends LoggingAbstract implements RowyLogging {
+  private readonly fieldName: string;
+  private readonly rowId: string;
+
+  constructor(projectId: string, fieldName: string, rowId: string) {
+    super(projectId, "connector");
+    this.fieldName = fieldName;
+    this.rowId = rowId;
   }
 
-  async warn(payload: any) {
-    await this.logWithSeverity(payload, "WARNING");
-  }
-
-  async error(payload: any) {
-    await this.logWithSeverity(payload, "ERROR");
+  async logWithSeverity(payload: any, severity: string) {
+    const log = this.logging.log(`rowy-logging`);
+    const metadata = {
+      severity,
+    };
+    const payloadSize = JSON.stringify(payload).length;
+    const entry = log.entry(metadata, {
+      functionType: this.functionType,
+      fieldName: this.fieldName,
+      rowId: this.rowId,
+      payload: payloadSize > 250000 ? { v: "payload too large" } : payload,
+    });
+    await log.write(entry);
   }
 }
 
