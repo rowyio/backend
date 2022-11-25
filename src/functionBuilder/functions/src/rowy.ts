@@ -27,17 +27,17 @@ interface Rowy {
     serviceAccountUser: () => Promise<RowyUser>;
   };
   secrets: {
-    get: (name: string, version?: string) => Promise<string | undefined>;
+    get: (name: string, version?: string) => Promise<string | any | undefined>;
   };
   storage: {
     upload: {
       url: (
         url: string,
-        options: uploadOptions
+        options?: uploadOptions
       ) => Promise<RowyFile | undefined>;
       data: (
         data: Buffer | string,
-        options: uploadOptions
+        options?: uploadOptions
       ) => Promise<RowyFile | undefined>;
     };
   };
