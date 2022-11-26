@@ -1,11 +1,15 @@
 import { IExtension } from "./types";
 import { getRequiredPackages } from "../../../utils";
 
-const removeInlineVersioning = (code) =>
+const removeInlineVersioning = (code: string) =>
   code.replace(
     /(?:require\(.*)@\d+\.\d+\.\d+/g,
     (capture) => capture.split("@")[0]
   );
+
+const removeTrailingColon = (code: string) => {
+  return code.replace(/\s*;\s*$/, "");
+};
 
 /* Convert extension objects into a single readable string */
 export const serialiseExtension = (extensions: IExtension[]): string =>
@@ -31,9 +35,12 @@ export const serialiseExtension = (extensions: IExtension[]): string =>
             requiredPackages:${JSON.stringify(
               getRequiredPackages(extension.extensionBody)
             )},
-          extensionBody: ${removeInlineVersioning(extension.extensionBody)
-            .replace(/^.*:\s*\w*Body\s*=/, "")
-            .replace(/\s*;\s*$/, "")}
+          extensionBody: ${removeTrailingColon(
+            removeInlineVersioning(extension.extensionBody).replace(
+              /^.*:\s*\w*Body\s*=/,
+              ""
+            )
+          )}
         }`
     )
     .join(",") +
@@ -53,7 +60,7 @@ export const serialiseDerivativeColumns = (derivativeColumns: any[]): string =>
     return `${acc}{\nfieldName:'${currColumn.key}'
     ,requiredPackages:${JSON.stringify(getRequiredPackages(functionBody))}
     ,evaluate:async ({row,ref,db,auth,storage,utilFns}) =>
-      ${removeInlineVersioning(functionBody)}
+      ${removeTrailingColon(removeInlineVersioning(functionBody))}
   ,\nlistenerFields:[${listenerFields
     .map((fieldKey: string) => `"${fieldKey}"`)
     .join(",\n")}]},\n`;
@@ -77,7 +84,7 @@ export const serialiseDefaultValueColumns = (
     type:"${type}",
     requiredPackages:${JSON.stringify(getRequiredPackages(functionBody))},
     script:async ({row,ref,db,auth,utilFns}) => {
-      ${removeInlineVersioning(functionBody)}
+      ${removeTrailingColon(removeInlineVersioning(functionBody))}
   },
    },\n`;
     } else {
