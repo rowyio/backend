@@ -1,7 +1,7 @@
 import { Logging } from "@google-cloud/logging";
 import { getProjectId } from "../utils/metadataService";
 
-type FunctionType = "derivative" | "extension" | "action" | "defaultValue";
+type FunctionType = "derivative-function" | "extension" | "defaultValue";
 
 interface RowyLogging {
   log: (payload: any) => void;
@@ -10,37 +10,31 @@ interface RowyLogging {
 }
 
 class LoggingFactory {
-  public static async createDerivativesLogging(fieldName: string) {
+  public static async createDerivativeLogging(
+    fieldName: string,
+    rowId: string
+  ) {
     const projectId = await getProjectId();
-    return new LoggingDerivatives(projectId, fieldName);
+    return new LoggingDerivative(
+      projectId,
+      fieldName,
+      rowId,
+      "derivative-function"
+    );
   }
 }
 
-class LoggingDerivatives implements RowyLogging {
-  private readonly functionType: FunctionType = "derivative";
-  private readonly fieldName: string;
-  private readonly logging: Logging;
+class LoggingAbstract implements RowyLogging {
+  protected readonly functionType;
+  protected readonly logging: Logging;
 
-  constructor(projectId: string, fieldName: string) {
-    this.fieldName = fieldName;
+  constructor(projectId: string, functionType: FunctionType) {
+    this.functionType = functionType;
     this.logging = new Logging({ projectId });
   }
 
-  private async logWithSeverity(payload: any, severity: string) {
-    const log = this.logging.log(`rowy-logging`);
-    const metadata = {
-      resource: {
-        type: "global",
-      },
-      severity,
-    };
-    const payloadSize = JSON.stringify(payload).length;
-    const entry = log.entry(metadata, {
-      functionType: this.functionType,
-      fieldName: this.fieldName,
-      payload: payloadSize > 250000 ? { v: "payload too large" } : payload,
-    });
-    await log.write(entry);
+  protected async logWithSeverity(payload: any, severity: string) {
+    throw new Error("logWithSeverity must be implemented");
   }
 
   async log(payload: any) {
@@ -53,6 +47,38 @@ class LoggingDerivatives implements RowyLogging {
 
   async error(payload: any) {
     await this.logWithSeverity(payload, "ERROR");
+  }
+}
+
+class LoggingDerivative extends LoggingAbstract implements RowyLogging {
+  private readonly fieldName: string;
+  private readonly rowId: string;
+
+  constructor(
+    projectId: string,
+    fieldName: string,
+    rowId: string,
+    functionType: FunctionType
+  ) {
+    super(projectId, functionType);
+    this.fieldName = fieldName;
+    this.rowId = rowId;
+  }
+
+  async logWithSeverity(payload: any, severity: string) {
+    const log = this.logging.log(`rowy-logging`);
+    const metadata = {
+      severity,
+    };
+    const payloadSize = JSON.stringify(payload).length;
+    const entry = log.entry(metadata, {
+      loggingSource: "backend-function",
+      functionType: this.functionType,
+      fieldName: this.fieldName,
+      rowId: this.rowId,
+      payload: payloadSize > 250000 ? { v: "payload too large" } : payload,
+    });
+    await log.write(entry);
   }
 }
 

@@ -32,8 +32,9 @@ const derivative =
           ]);
           if (shouldEval) {
             try {
-              const rowyLogging = await LoggingFactory.createDerivativesLogging(
-                currDerivative.fieldName
+              const logging = await LoggingFactory.createDerivativeLogging(
+                currDerivative.fieldName,
+                ref.id
               );
               const newValue = await currDerivative.evaluate({
                 row,
@@ -42,7 +43,7 @@ const derivative =
                 auth,
                 storage,
                 utilFns,
-                logging: rowyLogging,
+                logging,
               });
               if (
                 newValue !== undefined &&
