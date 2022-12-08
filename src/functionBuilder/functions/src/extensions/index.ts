@@ -1,6 +1,7 @@
 import * as functions from "firebase-functions";
 import utilFns, { hasRequiredFields, getTriggerType } from "../utils";
 import { db, auth, storage } from "../firebaseConfig";
+import { LoggingFactory } from "../logging";
 
 const extension =
   (extensionConfig, fieldTypes) =>
@@ -22,6 +23,18 @@ const extension =
         trackedFields,
         extensionBody,
       } = extensionConfig;
+      const loggingCondition = await LoggingFactory.createExtensionLogging(
+        type,
+        "condition",
+        name,
+        ref.path
+      );
+      const loggingFunction = await LoggingFactory.createExtensionLogging(
+        type,
+        "function",
+        name,
+        ref.path
+      );
       const extensionContext = {
         row: triggerType === "delete" ? beforeData : afterData,
         ref,
@@ -33,6 +46,14 @@ const extension =
         utilFns,
         fieldTypes,
         storage,
+      };
+      const extensionContextCondition = {
+        ...extensionContext,
+        logging: loggingCondition,
+      };
+      const extensionContextFunction = {
+        ...extensionContext,
+        logging: loggingFunction,
       };
       if (!triggers.includes(triggerType)) return false; //check if trigger type is included in the extension
       if (
@@ -54,14 +75,14 @@ const extension =
       }
       const dontRun = conditions
         ? !(typeof conditions === "function"
-            ? await conditions(extensionContext)
+            ? await conditions(extensionContextCondition)
             : conditions)
         : false; //
 
       console.log(`name: "${name}", type: "${type}", dontRun: ${dontRun}`);
 
       if (dontRun) return false;
-      const extensionData = await extensionBody(extensionContext);
+      const extensionData = await extensionBody(extensionContextFunction);
       console.log(`extensionData: ${JSON.stringify(extensionData)}`);
       const extensionFn = require(`./${type}`).default;
       await extensionFn(extensionData, extensionContext);

@@ -1,6 +1,6 @@
 #!/bin/bash
 name=rowy-backend
-region=asia-southeast1
+region=us-central1
 helpFunction()
 {
    echo "Usage: ./deploy.sh --project [YOUR GCLOUD PROJECT ID]"
