@@ -83,7 +83,7 @@ export const serialiseDefaultValueColumns = (
       return `${acc}{\nfieldName:'${currColumn.key}',
     type:"${type}",
     requiredPackages:${JSON.stringify(getRequiredPackages(functionBody))},
-    script:async ({row,ref,db,auth,utilFns}) => {
+    script:async ({row,ref,db,auth,utilFns,logging}) => {
       ${removeTrailingColon(removeInlineVersioning(functionBody))}
   },
    },\n`;
