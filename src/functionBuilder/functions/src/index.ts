@@ -20,7 +20,11 @@ export const R = {
           extensionConfig.triggers.includes(triggerType)
         )
         .map((extensionConfig) =>
-          extension(extensionConfig, functionConfig.fieldTypes)(change, context)
+          extension(
+            extensionConfig,
+            functionConfig.fieldTypes,
+            functionConfig.tableSchema
+          )(change, context)
         );
       console.log(
         `#${

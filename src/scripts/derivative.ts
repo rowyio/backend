@@ -69,7 +69,7 @@ export const evaluateDerivative = async (req: Request, res: Response) => {
     );
 
     const derivativeFunction = eval(
-      `async ({ row, db, ref, auth, fetch, rowy, logging }) =>` +
+      `async ({ row, db, ref, auth, fetch, rowy, logging, tableSchema }) =>` +
         code.replace(/^.*=>/, "")
     );
     let rowSnapshots: FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData>[] =
@@ -97,6 +97,7 @@ export const evaluateDerivative = async (req: Request, res: Response) => {
             fetch,
             rowy,
             logging,
+            tableSchema: schemaDocData,
           });
           const update = { [columnKey]: result };
           if (schemaDocData?.audit !== false) {

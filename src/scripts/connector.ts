@@ -27,6 +27,7 @@ type ConnectorArgs = {
   fetch: any;
   storage: admin.storage.Storage;
   logging: RowyLogging;
+  tableSchema: any;
 };
 
 type Connector = (args: ConnectorArgs) => Promise<any[]> | any[];
@@ -77,7 +78,7 @@ export const connector = async (req: Request, res: Response) => {
     );
 
     const connectorScript = eval(
-      `async ({ row, db, ref, auth, fetch, rowy, storage, logging }) =>` +
+      `async ({ row, db, ref, auth, fetch, rowy, storage, logging, tableSchema }) =>` +
         connectorFnBody
     ) as Connector;
     const pattern = /row(?!y)/;
@@ -96,6 +97,7 @@ export const connector = async (req: Request, res: Response) => {
       storage,
       rowy,
       logging,
+      tableSchema: schemaDocData,
     });
 
     const functionEndTime = Date.now();
