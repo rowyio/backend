@@ -50,4 +50,5 @@ export interface TableConfig {
     fields: string[];
   };
   runtimeOptions: IRuntimeOptions;
+  tableSchema: any;
 }

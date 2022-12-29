@@ -124,8 +124,8 @@ export const actionScript = async (req: Request, res: Response) => {
           user: { ...authUser2rowyUser(user), roles: userRoles },
           fetch,
           rowy,
-          tableSchema: schemaDocData,
           logging,
+          tableSchema: schemaDocData,
         });
         if (result.success || result.status) {
           const cellValue = {
