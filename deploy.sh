@@ -19,7 +19,7 @@ while test $# -gt 0; do
                    return 1;
                    ;;
           esac
-  done  
+  done
 
 if [[ -z "$project_id" ]];
 then

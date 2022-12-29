@@ -61,3 +61,5 @@ export async function getLogs(req: Request) {
     return entry.toJSON();
   });
 }
+
+export { LoggingFactory, RowyLogging } from "./LoggingFactory";

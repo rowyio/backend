@@ -3,7 +3,7 @@ import utilFns, { hasRequiredFields, getTriggerType } from "../utils";
 import { db, auth, storage } from "../firebaseConfig";
 
 const extension =
-  (extensionConfig, fieldTypes) =>
+  (extensionConfig, fieldTypes, tableSchema) =>
   async (
     change: functions.Change<functions.firestore.DocumentSnapshot>,
     context: functions.EventContext
@@ -33,6 +33,7 @@ const extension =
         utilFns,
         fieldTypes,
         storage,
+        tableSchema,
       };
       if (!triggers.includes(triggerType)) return false; //check if trigger type is included in the extension
       if (

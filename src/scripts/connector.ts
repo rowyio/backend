@@ -8,6 +8,7 @@ import { Auth } from "firebase-admin/auth";
 import * as admin from "firebase-admin";
 import { installDependenciesIfMissing } from "../utils";
 import { telemetryRuntimeDependencyPerformance } from "../rowyService";
+import { LoggingFactory, RowyLogging } from "../logging";
 
 type ConnectorRequest = {
   rowDocPath: string;
@@ -25,6 +26,8 @@ type ConnectorArgs = {
   rowy: Rowy;
   fetch: any;
   storage: admin.storage.Storage;
+  logging: RowyLogging;
+  tableSchema: any;
 };
 
 type Connector = (args: ConnectorArgs) => Promise<any[]> | any[];
@@ -69,8 +72,13 @@ export const connector = async (req: Request, res: Response) => {
         `connector ${columnKey} in ${rowDocPath}`
       );
 
+    const logging = await LoggingFactory.createConnectorLogging(
+      columnKey,
+      schemaDoc.ref.id
+    );
+
     const connectorScript = eval(
-      `async ({ row, db, ref, auth, fetch, rowy, storage }) =>` +
+      `async ({ row, db, ref, auth, fetch, rowy, storage, logging, tableSchema }) =>` +
         connectorFnBody
     ) as Connector;
     const pattern = /row(?!y)/;
@@ -88,6 +96,8 @@ export const connector = async (req: Request, res: Response) => {
       user,
       storage,
       rowy,
+      logging,
+      tableSchema: schemaDocData,
     });
 
     const functionEndTime = Date.now();
