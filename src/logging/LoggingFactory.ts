@@ -1,7 +1,7 @@
 import { Logging } from "@google-cloud/logging";
 import { getProjectId } from "../metadataService";
 
-type FunctionType = "action" | "connector" | "derivative";
+type FunctionType = "action" | "connector" | "derivative-script";
 
 interface RowyLogging {
   log: (payload: any) => void;
@@ -10,22 +10,49 @@ interface RowyLogging {
 }
 
 class LoggingFactory {
-  public static async createActionLogging(fieldName: string, rowId: string) {
+  public static async createActionLogging(
+    fieldName: string,
+    rowId: string,
+    tablePath: string
+  ) {
     const projectId = await getProjectId();
-    return new LoggingFieldAndRow(projectId, fieldName, rowId, "action");
+    return new LoggingFieldAndRow(
+      projectId,
+      fieldName,
+      rowId,
+      "action",
+      tablePath
+    );
   }
 
-  public static async createConnectorLogging(fieldName: string, rowId: string) {
+  public static async createConnectorLogging(
+    fieldName: string,
+    rowId: string,
+    tablePath: string
+  ) {
     const projectId = await getProjectId();
-    return new LoggingFieldAndRow(projectId, fieldName, rowId, "connector");
+    return new LoggingFieldAndRow(
+      projectId,
+      fieldName,
+      rowId,
+      "connector",
+      tablePath
+    );
   }
 
   public static async createDerivativeLogging(
     fieldName: string,
-    rowId: string
+    rowId: string,
+    tablePath: string
   ) {
     const projectId = await getProjectId();
-    return new LoggingFieldAndRow(projectId, fieldName, rowId, "derivative");
+    return new LoggingFieldAndRow(
+      projectId,
+      fieldName,
+      rowId,
+      "derivative-script",
+      tablePath
+    );
   }
 }
 
@@ -58,16 +85,19 @@ class LoggingAbstract implements RowyLogging {
 class LoggingFieldAndRow extends LoggingAbstract implements RowyLogging {
   private readonly fieldName: string;
   private readonly rowId: string;
+  private readonly tablePath: string;
 
   constructor(
     projectId: string,
     fieldName: string,
     rowId: string,
-    functionType: FunctionType
+    functionType: FunctionType,
+    tablePath: string
   ) {
     super(projectId, functionType);
     this.fieldName = fieldName;
     this.rowId = rowId;
+    this.tablePath = tablePath;
   }
 
   async logWithSeverity(payload: any, severity: string) {
@@ -81,6 +111,7 @@ class LoggingFieldAndRow extends LoggingAbstract implements RowyLogging {
       functionType: this.functionType,
       fieldName: this.fieldName,
       rowId: this.rowId,
+      tablePath: this.tablePath,
       payload: payloadSize > 250000 ? { v: "payload too large" } : payload,
     });
     await log.write(entry);

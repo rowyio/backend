@@ -74,7 +74,8 @@ export const connector = async (req: Request, res: Response) => {
 
     const logging = await LoggingFactory.createConnectorLogging(
       columnKey,
-      schemaDoc.ref.id
+      schemaDoc.ref.id,
+      rowDocPath
     );
 
     const connectorScript = eval(

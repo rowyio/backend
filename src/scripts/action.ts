@@ -90,7 +90,8 @@ export const actionScript = async (req: Request, res: Response) => {
 
     const logging = await LoggingFactory.createActionLogging(
       column.key,
-      ref.id
+      ref.id,
+      ref.path
     );
 
     const _actionScript = eval(

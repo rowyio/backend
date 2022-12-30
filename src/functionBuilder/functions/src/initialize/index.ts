@@ -1,10 +1,19 @@
 import * as functions from "firebase-functions";
 import utilFns from "../utils";
 import { db, auth, storage } from "../firebaseConfig";
-const initializedDoc =
-  (columns: { fieldName: string; type: string; value?: any; script?: any }[]) =>
-  async (snapshot: functions.firestore.DocumentSnapshot) =>
+import { LoggingFactory } from "../logging";
+
+const initializedDoc = (
+  columns: { fieldName: string; type: string; value?: any; script?: any }[]
+) => {
+  return async (snapshot: functions.firestore.DocumentSnapshot) =>
     columns.reduce(async (acc, column) => {
+      const logging = await LoggingFactory.createDefaultValueLogging(
+        column.fieldName,
+        snapshot.ref.id,
+        snapshot.ref.path
+      );
+
       if (snapshot.get(column.fieldName) !== undefined)
         return { ...(await acc) }; // prevents overwriting already initialised values
       if (column.type === "static") {
@@ -24,8 +33,10 @@ const initializedDoc =
             auth,
             storage,
             utilFns,
+            logging,
           }),
         };
       } else return { ...(await acc) };
     }, {});
+};
 export default initializedDoc;

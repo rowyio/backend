@@ -2,6 +2,7 @@ import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import { db, auth, storage } from "../firebaseConfig";
 import utilFns from "../utils";
+import { LoggingFactory, RowyLogging } from "../logging";
 
 const derivative =
   (
@@ -15,6 +16,7 @@ const derivative =
         auth: admin.auth.Auth;
         storage: admin.storage.Storage;
         utilFns: any;
+        logging: RowyLogging;
       }) => any;
     }[]
   ) =>
@@ -30,6 +32,11 @@ const derivative =
           ]);
           if (shouldEval) {
             try {
+              const logging = await LoggingFactory.createDerivativeLogging(
+                currDerivative.fieldName,
+                ref.id,
+                ref.path
+              );
               const newValue = await currDerivative.evaluate({
                 row,
                 ref,
@@ -37,6 +44,7 @@ const derivative =
                 auth,
                 storage,
                 utilFns,
+                logging,
               });
               if (
                 newValue !== undefined &&

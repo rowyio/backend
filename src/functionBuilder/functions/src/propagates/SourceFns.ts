@@ -1,6 +1,7 @@
-import { DocumentSnapshot } from "firebase-functions/lib/providers/firestore";
+//import { DocumentSnapshot } from "firebase-functions/lib/providers/firestore";
 import { rowReducer } from "../utils";
 import { db } from "../firebaseConfig";
+import { DocumentSnapshot } from "firebase-functions/v1/firestore";
 const TARGET_SUB_COLLECTION = "_FT_BINDINGS";
 
 //sample binding document

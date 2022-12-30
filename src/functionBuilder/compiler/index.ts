@@ -29,9 +29,48 @@ export default async function generateConfig(
   buildFolderTimestamp
 ) {
   const projectId = await getProjectId();
-  const yarn = await asyncExecute(`cd ${buildPath};yarn`, () => {
-    streamLogger.info("Base dependencies installed successfully");
-  });
+  await asyncExecute(
+    `cd ${buildPath};pwd;ls -al`,
+    () => {
+      streamLogger.info("1");
+    },
+    streamLogger
+  );
+  await asyncExecute(
+    `cd ${buildPath};less package.json`,
+    () => {
+      streamLogger.info("2");
+    },
+    streamLogger
+  );
+  await asyncExecute(
+    `cd ${buildPath}/src;pwd;ls -al`,
+    () => {
+      streamLogger.info("3");
+    },
+    streamLogger
+  );
+  await asyncExecute(
+    `cd ${buildPath};yarn`,
+    () => {
+      streamLogger.info("Base dependencies installed successfully");
+    },
+    streamLogger
+  );
+  await asyncExecute(
+    `cd ${buildPath}/node_modules/@google-cloud/logging/node_modules/@grpc/proto-loader;yarn`,
+    () => {
+      streamLogger.info("4");
+    },
+    streamLogger
+  );
+  await asyncExecute(
+    `cd ${buildPath}/node_modules/@google-cloud/logging/node_modules/@grpc/proto-loader/build/src;pwd;ls -al`,
+    () => {
+      streamLogger.info("5");
+    },
+    streamLogger
+  );
 
   await streamLogger.info(`Generating schema...`);
   const {
@@ -92,7 +131,8 @@ export default async function generateConfig(
         description: `Invalid compiled functionConfig.ts`,
       },
       streamLogger
-    )
+    ),
+    streamLogger
   );
   if (!isFunctionConfigValid) {
     throw new Error("Invalid compiled functionConfig.ts");
