@@ -13,14 +13,16 @@ interface RowyLogging {
 class LoggingFactory {
   public static async createDerivativeLogging(
     fieldName: string,
-    rowId: string
+    rowId: string,
+    tablePath: string
   ) {
     const projectId = await getProjectId();
     return new LoggingDerivative(
       projectId,
       fieldName,
       rowId,
-      "derivative-function"
+      "derivative-function",
+      tablePath
     );
   }
 
@@ -42,10 +44,17 @@ class LoggingFactory {
 
   public static async createDefaultValueLogging(
     fieldName: string,
-    rowId: string
+    rowId: string,
+    tablePath: string
   ) {
     const projectId = await getProjectId();
-    return new LoggingDefaultValue(projectId, fieldName, rowId, "defaultValue");
+    return new LoggingDefaultValue(
+      projectId,
+      fieldName,
+      rowId,
+      "defaultValue",
+      tablePath
+    );
   }
 }
 
@@ -78,16 +87,19 @@ class LoggingAbstract implements RowyLogging {
 class LoggingDerivative extends LoggingAbstract implements RowyLogging {
   private readonly fieldName: string;
   private readonly rowId: string;
+  private readonly tablePath: string;
 
   constructor(
     projectId: string,
     fieldName: string,
     rowId: string,
-    functionType: FunctionType
+    functionType: FunctionType,
+    tablePath: string
   ) {
     super(projectId, functionType);
     this.fieldName = fieldName;
     this.rowId = rowId;
+    this.tablePath = tablePath;
   }
 
   async logWithSeverity(payload: any, severity: string) {
@@ -101,6 +113,7 @@ class LoggingDerivative extends LoggingAbstract implements RowyLogging {
       functionType: this.functionType,
       fieldName: this.fieldName,
       rowId: this.rowId,
+      tablePath: this.tablePath,
       payload: payloadSize > 250000 ? { v: "payload too large" } : payload,
     });
     await log.write(entry);
@@ -149,16 +162,19 @@ class LoggingExtension extends LoggingAbstract implements RowyLogging {
 class LoggingDefaultValue extends LoggingAbstract implements RowyLogging {
   private readonly fieldName: string;
   private readonly rowId: string;
+  private readonly tablePath: string;
 
   constructor(
     projectId: string,
     fieldName: string,
     rowId: string,
-    functionType: FunctionType
+    functionType: FunctionType,
+    tablePath: string
   ) {
     super(projectId, functionType);
     this.fieldName = fieldName;
     this.rowId = rowId;
+    this.tablePath = tablePath;
   }
 
   async logWithSeverity(payload: any, severity: string) {
@@ -172,6 +188,7 @@ class LoggingDefaultValue extends LoggingAbstract implements RowyLogging {
       functionType: this.functionType,
       fieldName: this.fieldName,
       rowId: this.rowId,
+      tablePath: this.tablePath,
       payload: payloadSize > 250000 ? { v: "payload too large" } : payload,
     });
     await log.write(entry);

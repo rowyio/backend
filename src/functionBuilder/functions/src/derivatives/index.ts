@@ -34,7 +34,8 @@ const derivative =
             try {
               const logging = await LoggingFactory.createDerivativeLogging(
                 currDerivative.fieldName,
-                ref.id
+                ref.id,
+                ref.path
               );
               const newValue = await currDerivative.evaluate({
                 row,

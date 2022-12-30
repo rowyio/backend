@@ -65,7 +65,8 @@ export const evaluateDerivative = async (req: Request, res: Response) => {
 
     const logging = await LoggingFactory.createDerivativeLogging(
       columnKey,
-      schemaDoc.ref.id
+      schemaDoc.ref.id,
+      ref.path
     );
 
     const derivativeFunction = eval(

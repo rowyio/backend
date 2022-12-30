@@ -10,7 +10,8 @@ const initializedDoc = (
     columns.reduce(async (acc, column) => {
       const logging = await LoggingFactory.createDefaultValueLogging(
         column.fieldName,
-        snapshot.ref.id
+        snapshot.ref.id,
+        snapshot.ref.path
       );
 
       if (snapshot.get(column.fieldName) !== undefined)
