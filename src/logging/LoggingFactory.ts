@@ -1,7 +1,7 @@
 import { Logging } from "@google-cloud/logging";
 import { getProjectId } from "../metadataService";
 
-type FunctionType = "action" | "connector" | "derivative";
+type FunctionType = "action" | "connector" | "derivative-script";
 
 interface RowyLogging {
   log: (payload: any) => void;
@@ -25,7 +25,12 @@ class LoggingFactory {
     rowId: string
   ) {
     const projectId = await getProjectId();
-    return new LoggingFieldAndRow(projectId, fieldName, rowId, "derivative");
+    return new LoggingFieldAndRow(
+      projectId,
+      fieldName,
+      rowId,
+      "derivative-script"
+    );
   }
 }
 
