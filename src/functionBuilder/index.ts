@@ -41,7 +41,9 @@ export const functionBuilder = async (
     const functionConfigPath = `_rowy_/settings/functions/${functionName}`;
 
     const streamLogger = await createStreamLogger(functionConfigPath);
-    await streamLogger.info(`Build started`);
+    await streamLogger.info(
+      `Build started. collectionType: ${collectionType}, tablePath: ${tablePath}, pathname: ${pathname}, functionName: ${functionName}`
+    );
     const buildFolderTimestamp = Date.now();
     const buildPath = `build/functionBuilder/builds/${buildFolderTimestamp}`;
 
