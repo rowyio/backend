@@ -151,6 +151,7 @@ export const actionScript = async (req: Request, res: Response) => {
           };
         } else
           return {
+            ...result,
             success: false,
             message: result.message,
           };
