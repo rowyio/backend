@@ -32,6 +32,8 @@ import { auditChange } from "./logging/auditChange";
 import { telemetryError } from "./rowyService";
 import { listSecrets } from "./secretManager";
 import { connector } from "./scripts/connector";
+import { triggerJob } from "./runJobs";
+
 const app = express();
 // json is the default content-type for POST requests
 app.use(express.json());
@@ -170,6 +172,13 @@ app.get(
   requireAuth,
   hasAnyRole(["ADMIN"]),
   functionWrapper(listSecrets)
+);
+
+app.post(
+  "/triggerJob",
+  requireAuth,
+  hasAnyRole(["ADMIN"]),
+  functionWrapper(triggerJob)
 );
 
 const port = process.env.PORT || 8080;
