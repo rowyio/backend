@@ -1,5 +1,4 @@
 import { Logging } from "@google-cloud/logging";
-import { getProjectId } from "../utils/metadataService";
 
 type FunctionType = "derivative-function" | "extension" | "defaultValue";
 type IExtensionSource = "condition" | "function";
@@ -16,7 +15,7 @@ class LoggingFactory {
     rowId: string,
     tablePath: string
   ) {
-    const projectId = await getProjectId();
+    const projectId = process.env.GCLOUD_PROJECT;
     return new LoggingDerivative(
       projectId,
       fieldName,
@@ -32,7 +31,7 @@ class LoggingFactory {
     extensionName: string,
     tablePath: string
   ) {
-    const projectId = await getProjectId();
+    const projectId = process.env.GCLOUD_PROJECT;
     return new LoggingExtension(
       projectId,
       extensionType,
@@ -47,7 +46,7 @@ class LoggingFactory {
     rowId: string,
     tablePath: string
   ) {
-    const projectId = await getProjectId();
+    const projectId = process.env.GCLOUD_PROJECT;
     return new LoggingDefaultValue(
       projectId,
       fieldName,
