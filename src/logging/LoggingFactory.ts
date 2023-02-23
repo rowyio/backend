@@ -65,19 +65,19 @@ class LoggingAbstract implements RowyLogging {
     this.logging = new Logging({ projectId });
   }
 
-  protected async logWithSeverity(payload: any, severity: string) {
+  protected async logWithSeverity(payload: any[], severity: string) {
     throw new Error("logWithSeverity must be implemented");
   }
 
-  async log(payload: any) {
+  async log(...payload: any[]) {
     await this.logWithSeverity(payload, "DEFAULT");
   }
 
-  async warn(payload: any) {
+  async warn(...payload: any[]) {
     await this.logWithSeverity(payload, "WARNING");
   }
 
-  async error(payload: any) {
+  async error(...payload: any[]) {
     await this.logWithSeverity(payload, "ERROR");
   }
 }
@@ -100,7 +100,7 @@ class LoggingFieldAndRow extends LoggingAbstract implements RowyLogging {
     this.tablePath = tablePath;
   }
 
-  async logWithSeverity(payload: any, severity: string) {
+  async logWithSeverity(payload: any[], severity: string) {
     const log = this.logging.log(`rowy-logging`);
     const metadata = {
       severity,
@@ -112,7 +112,12 @@ class LoggingFieldAndRow extends LoggingAbstract implements RowyLogging {
       fieldName: this.fieldName,
       rowId: this.rowId,
       tablePath: this.tablePath,
-      payload: payloadSize > 250000 ? { v: "payload too large" } : payload,
+      payload:
+        payloadSize > 250000
+          ? { v: "payload too large" }
+          : payload.length > 1
+          ? payload
+          : payload[0],
     });
     await log.write(entry);
   }
