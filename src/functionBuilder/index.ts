@@ -102,7 +102,7 @@ export const functionBuilder = async (
 
       await streamLogger.info("Installing dependencies...");
       await asyncExecute(
-        `cd ${buildPath}; yarn install`,
+        `cd ${buildPath}; yarn install --mutex network`,
         commandErrorHandler({ user }, streamLogger)
       );
 

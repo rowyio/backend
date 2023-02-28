@@ -51,23 +51,9 @@ export default async function generateConfig(
     streamLogger
   );
   await asyncExecute(
-    `cd ${buildPath};yarn`,
+    `cd ${buildPath};yarn install --mutex network`,
     () => {
       streamLogger.info("Base dependencies installed successfully");
-    },
-    streamLogger
-  );
-  await asyncExecute(
-    `cd ${buildPath}/node_modules/@google-cloud/logging/node_modules/@grpc/proto-loader;yarn`,
-    () => {
-      streamLogger.info("4");
-    },
-    streamLogger
-  );
-  await asyncExecute(
-    `cd ${buildPath}/node_modules/@google-cloud/logging/node_modules/@grpc/proto-loader/build/src;pwd;ls -al`,
-    () => {
-      streamLogger.info("5");
     },
     streamLogger
   );
