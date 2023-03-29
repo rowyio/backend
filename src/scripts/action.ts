@@ -1,5 +1,5 @@
 import _get from "lodash/get";
-import { db, auth } from "../firebaseConfig";
+import { db, auth, storage } from "../firebaseConfig";
 import { Request, Response } from "express";
 import { User } from "../types/User";
 import fetch from "node-fetch";
@@ -95,7 +95,7 @@ export const actionScript = async (req: Request, res: Response) => {
     );
 
     const _actionScript = eval(
-      `async ({ row, db, ref, auth, utilFns, actionParams, user, fetch, rowy, tableSchema, logging }) => ${codeToRun}`
+      `async ({ row, db, ref, auth, utilFns, actionParams, user, fetch, rowy,storage, tableSchema, logging }) => ${codeToRun}`
     );
     const getRows = refs
       ? refs.map(async (r) => db.doc(r.path).get())
@@ -126,6 +126,7 @@ export const actionScript = async (req: Request, res: Response) => {
           fetch,
           rowy,
           logging,
+          storage,
           tableSchema: schemaDocData,
         });
         if (result.success || result.status) {
