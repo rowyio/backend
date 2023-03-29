@@ -17,11 +17,11 @@ type Ref = {
 };
 type ActionData = {
   refs?: Ref[]; // used in bulkAction
-  ref?: Ref;
-  schemaDocPath?: string;
-  column: any;
-  action: "run" | "redo" | "undo";
-  actionParams: any;
+  ref?: Ref; // document reference the action is excuted on
+  schemaDocPath?: string; // table schema path
+  column: any; // main needs action column key to find the script it needs to run
+  action: "run" | "redo" | "undo"; // the different available modes
+  actionParams: any; // an object with values of action parameters 
 };
 
 const missingFieldsReducer = (data: any) => (acc: string[], curr: string) => {
