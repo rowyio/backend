@@ -2,6 +2,7 @@ import { db, auth } from "../firebaseConfig";
 import { Request, Response } from "express";
 import { User } from "../types/User";
 import fetch from "node-fetch";
+import { transform as sucraseTransform } from "sucrase";
 import { DocumentReference } from "firebase-admin/firestore";
 import rowy from "./rowy";
 import { installDependenciesIfMissing } from "../utils";
@@ -51,11 +52,35 @@ export const evaluateDerivative = async (req: Request, res: Response) => {
     }
     const config = schemaDocData.columns[columnKey].config;
     const { derivativeFn, script } = config;
-    const code =
-      derivativeFn ??
-      `{
-      ${script}
-    }`;
+
+    // If the derivativeFn property is exists, use it. Otherwise, use the script
+    // property for backwards compatibility.
+    let code = "";
+    if (derivativeFn) {
+      // Transpile the derivative function to remove TypeScript and import
+      // statements.
+      code = sucraseTransform(derivativeFn, {
+        transforms: ["typescript", "imports"],
+      }).code;
+
+      // If the code doesn't have a default export, add one for the derivative
+      // function for backwards compatibility.
+      const defaultExportRegex = /exports\s*?\.\s*?default\s*?=/;
+      if (!defaultExportRegex.test(code)) {
+        code += "\nexports.default = derivative;";
+      }
+    } else {
+      code = `exports.default = async ({
+        row,
+        db,
+        ref,
+        auth,
+        fetch,
+        rowy,
+        logging,
+        tableSchema,
+      }) => {${script}};`;
+    }
 
     const { yarnStartTime, yarnFinishTime, dependenciesString } =
       await installDependenciesIfMissing(
@@ -69,10 +94,7 @@ export const evaluateDerivative = async (req: Request, res: Response) => {
       collectionPath ?? ""
     );
 
-    const derivativeFunction = eval(
-      `async ({ row, db, ref, auth, fetch, rowy, logging, tableSchema }) =>` +
-        code.replace(/^.*=>/, "")
-    );
+    const derivativeFunction = eval(code);
     let rowSnapshots: FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData>[] =
       [];
     if (collectionPath) {

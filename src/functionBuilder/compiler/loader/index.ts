@@ -140,7 +140,10 @@ export const generateFile = async (configData, buildFolderTimestamp) => {
     fieldTypes: JSON.stringify(fieldTypes),
     triggerPath: JSON.stringify(triggerPath),
     functionName: JSON.stringify(functionName),
-    derivativesConfig: serialiseDerivativeColumns(derivativeColumns),
+    derivativesConfig: serialiseDerivativeColumns(
+      derivativeColumns,
+      buildFolderTimestamp
+    ),
     defaultValueConfig: serialiseDefaultValueColumns(defaultValueColumns),
     documentSelectConfig: serialiseDocumentSelectColumns(documentSelectColumns),
     extensionsConfig: serialiseExtension(extensions),
