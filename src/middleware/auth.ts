@@ -1,6 +1,7 @@
 import { auth } from "../firebaseConfig";
 import { telemetry, telemetryError } from "../rowyService";
 import { Request } from "express";
+
 export const requireAuth = async (req: Request, res: any, next: any) => {
   try {
     const authHeader = req.get("Authorization");
@@ -8,10 +9,10 @@ export const requireAuth = async (req: Request, res: any, next: any) => {
     const authToken = authHeader.split(" ")[1];
     const decodedToken = await auth.verifyIdToken(authToken);
     res.locals.user = decodedToken;
-    telemetry(req.path.slice(1), decodedToken);
+    telemetry(req.path.slice(1));
     next();
   } catch (error: any) {
-    await telemetryError(req.path.slice(1), null, error);
+    await telemetryError(req.path.slice(1), error);
     res.sendStatus(401);
   }
 };
@@ -41,7 +42,7 @@ export const hasAnyRole =
         }
       }
     } catch (error) {
-      await telemetryError(req.path.slice(1), user, error);
+      await telemetryError(req.path.slice(1), error);
       res.status(401);
     }
   };
