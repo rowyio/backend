@@ -101,11 +101,11 @@ export const serialiseDerivativeColumns = (
     );
 
     return `${acc}{\nfieldName:'${currColumn.key}'
-    ,requiredPackages:${JSON.stringify(getRequiredPackages(functionBody))}
-    ,evaluate:require("./derivatives/${currColumn.key}")
-  ,\nlistenerFields:[${listenerFields
-    .map((fieldKey: string) => `"${fieldKey}"`)
-    .join(",\n")}]},\n`;
+    ,requiredPackages:${JSON.stringify(getRequiredPackages(functionBody))},
+    \/\/ evaluate:require("./derivatives/${currColumn.key}"),
+    \nlistenerFields:[${listenerFields
+      .map((fieldKey: string) => `"${fieldKey}"`)
+      .join(",\n")}]},\n`;
   }, "")}]`;
 
 export const serialiseDefaultValueColumns = (
