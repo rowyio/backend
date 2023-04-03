@@ -117,9 +117,11 @@ export const functionBuilder = async (
         ),
         "utf-8"
       );
+      // replace all instances of // evaluate:require with evaluate:require
+
       const modifiedConfigFile = configFile.replace(
-        "// evaluate:require(",
-        "evaluate:require("
+        /\/\/ evaluate:require/g,
+        "evaluate:require"
       );
       fs.writeFileSync(
         path.resolve(
