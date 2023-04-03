@@ -1,11 +1,11 @@
 {
-  "name": "functions",
-  "version": "0.0.1",
+  "name": "rowy-functions",
+  "version": "1.0.0",
   "scripts": {
     "deploy": "echo 'n\n' | firebase deploy --interactive"
   },
   "engines": {
-    "node": "16"
+    "node": "18"
   },
   "main": "src/index.js",
   "dependencies": {
