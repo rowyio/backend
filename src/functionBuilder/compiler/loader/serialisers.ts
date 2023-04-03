@@ -1,3 +1,6 @@
+import * as fs from "fs";
+import * as path from "path";
+import { transform as sucraseTransform } from "sucrase";
 import { IExtension } from "./types";
 import { getRequiredPackages } from "../../../utils";
 
@@ -47,23 +50,62 @@ export const serialiseExtension = (extensions: IExtension[]): string =>
   "]";
 
 /* convert derivative columns into a readable string */
-export const serialiseDerivativeColumns = (derivativeColumns: any[]): string =>
+export const serialiseDerivativeColumns = (
+  derivativeColumns: any[],
+  buildFolderTimestamp: string
+): string =>
   `[${derivativeColumns.reduce((acc, currColumn: any) => {
     const { derivativeFn, script, listenerFields } = currColumn.config;
-    if (listenerFields.includes(currColumn.key))
+    if (listenerFields.includes(currColumn.key)) {
       throw new Error(
         `${currColumn.key} derivative has its own key as a listener field`
       );
-    const functionBody = derivativeFn
-      ? derivativeFn.replace(/(.|\r\n)*=>/, "")
-      : `{\n${script}\n}`;
+    }
+
+    // If the derivativeFn property is exists, use it. Otherwise, use the script
+    // property for backwards compatibility.
+    let functionBody = "";
+    if (derivativeFn) {
+      // Transpile the derivative function to remove TypeScript and import
+      // statements.
+      functionBody = sucraseTransform(derivativeFn, {
+        transforms: ["typescript", "imports"],
+      }).code;
+
+      // If the code doesn't have a default export, add one for the derivative
+      // function for backwards compatibility.
+      const defaultExportRegex = /exports\s*?\.\s*?default\s*?=/;
+      if (!defaultExportRegex.test(functionBody)) {
+        functionBody += "\nexports.default = derivative;";
+      }
+    } else {
+      functionBody = `exports.default = async ({
+        row,
+        db,
+        ref,
+        auth,
+        fetch,
+        rowy,
+        logging,
+        tableSchema,
+      }) => {${script}};`;
+    }
+
+    // Write the derivative function to a file.
+    fs.writeFileSync(
+      path.resolve(
+        __dirname,
+        `../../builds/${buildFolderTimestamp}/src/derivatives/${currColumn.key}.js`
+      ),
+      functionBody
+    );
+
     return `${acc}{\nfieldName:'${currColumn.key}'
-    ,requiredPackages:${JSON.stringify(getRequiredPackages(functionBody))}
-    ,evaluate:async ({row,ref,db,auth,storage,utilFns,logging}) =>
-      ${removeTrailingColon(removeInlineVersioning(functionBody))}
-  ,\nlistenerFields:[${listenerFields
-    .map((fieldKey: string) => `"${fieldKey}"`)
-    .join(",\n")}]},\n`;
+    ,requiredPackages:${JSON.stringify(getRequiredPackages(functionBody))},
+    \/\/ evaluate:require("./derivatives/${currColumn.key}"),
+    \nlistenerFields:[${listenerFields
+      .map((fieldKey: string) => `"${fieldKey}"`)
+      .join(",\n")}]},\n`;
   }, "")}]`;
 
 export const serialiseDefaultValueColumns = (

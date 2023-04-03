@@ -11,6 +11,8 @@ import { commandErrorHandler, createStreamLogger } from "./logger";
 import firebase from "firebase-admin";
 import { getProjectId } from "../metadataService";
 import { db } from "../firebaseConfig";
+import fs from "fs";
+import path from "path";
 
 export const functionBuilder = async (
   req: any,
@@ -107,6 +109,27 @@ export const functionBuilder = async (
       );
 
       await streamLogger.info(`Deploying ${functionName} to ${projectId}`);
+
+      const configFile = fs.readFileSync(
+        path.resolve(
+          __dirname,
+          `./builds/${buildFolderTimestamp}/src/functionConfig.js`
+        ),
+        "utf-8"
+      );
+      // replace all instances of // evaluate:require with evaluate:require
+      const modifiedConfigFile = configFile.replace(
+        /\/\/ evaluate:require/g,
+        "evaluate:require"
+      );
+      fs.writeFileSync(
+        path.resolve(
+          __dirname,
+          `./builds/${buildFolderTimestamp}/src/functionConfig.js`
+        ),
+        modifiedConfigFile,
+        "utf-8"
+      );
       await asyncExecute(
         `cd ${buildPath}; yarn deploy --project ${projectId} --only functions`,
         commandErrorHandler({ user }, streamLogger),

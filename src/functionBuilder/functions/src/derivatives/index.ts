@@ -37,7 +37,7 @@ const derivative =
                 ref.id,
                 ref.path
               );
-              const newValue = await currDerivative.evaluate({
+              const newValue = await (currDerivative as any).evaluate.default({
                 row,
                 ref,
                 db,
