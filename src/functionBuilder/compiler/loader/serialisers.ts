@@ -83,7 +83,8 @@ export const serialiseDerivativeColumns = (
   }, "")}]`;
 
 export const serialiseDefaultValueColumns = (
-  defaultValueColumns: any[]
+  defaultValueColumns: any[],
+  buildFolderTimestamp: string
 ): string =>
   `[${defaultValueColumns.reduce((acc, currColumn: any) => {
     const { dynamicValueFn, script, type, value } =
@@ -94,14 +95,30 @@ export const serialiseDefaultValueColumns = (
     value:${typeof value === "string" ? `"${value}"` : JSON.stringify(value)},
    },\n`;
     } else if (type === "dynamic") {
-      const functionBody =
-        dynamicValueFn.replace(/(.|\r\n)*=>/, "") ?? `{\n${script}\n}`;
+      const functionBody = transpile(dynamicValueFn, script, "dynamicValueFn");
+
+      const dir = path.resolve(
+        __dirname,
+        `../../builds/${buildFolderTimestamp}/src/defaultValues`
+      );
+
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir);
+      }
+
+      // Write the dynamic value function to a file.
+      fs.writeFileSync(
+        path.resolve(
+          __dirname,
+          `../../builds/${buildFolderTimestamp}/src/defaultValues/${currColumn.key}.js`
+        ),
+        removeInlineVersioning(functionBody)
+      );
+
       return `${acc}{\nfieldName:'${currColumn.key}',
     type:"${type}",
     requiredPackages:${JSON.stringify(getRequiredPackages(functionBody))},
-    script:async ({row,ref,db,auth,utilFns,logging}) => {
-      ${removeTrailingColon(removeInlineVersioning(functionBody))}
-  },
+    \/\/ script:require("./defaultValues/${currColumn.key}"),
    },\n`;
     } else {
       return `${acc}{\nfieldName:'${currColumn.key}',

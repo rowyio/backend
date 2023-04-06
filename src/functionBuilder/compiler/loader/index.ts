@@ -1,7 +1,7 @@
 import { db } from "../../../firebaseConfig";
 import {
-  serialiseDerivativeColumns,
   serialiseDefaultValueColumns,
+  serialiseDerivativeColumns,
   serialiseDocumentSelectColumns,
   serialiseExtension,
 } from "./serialisers";
@@ -144,7 +144,10 @@ export const generateFile = async (configData, buildFolderTimestamp) => {
       derivativeColumns,
       buildFolderTimestamp
     ),
-    defaultValueConfig: serialiseDefaultValueColumns(defaultValueColumns),
+    defaultValueConfig: serialiseDefaultValueColumns(
+      defaultValueColumns,
+      buildFolderTimestamp
+    ),
     documentSelectConfig: serialiseDocumentSelectColumns(documentSelectColumns),
     extensionsConfig: serialiseExtension(extensions),
     runtimeOptions: JSON.stringify({
