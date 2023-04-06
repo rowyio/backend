@@ -3,6 +3,7 @@ import * as path from "path";
 import { transform as sucraseTransform } from "sucrase";
 import { IExtension } from "./types";
 import { getRequiredPackages } from "../../../utils";
+import { transpile } from "../../utils";
 
 const removeInlineVersioning = (code: string) =>
   code.replace(
@@ -62,34 +63,7 @@ export const serialiseDerivativeColumns = (
       );
     }
 
-    // If the derivativeFn property is exists, use it. Otherwise, use the script
-    // property for backwards compatibility.
-    let functionBody = "";
-    if (derivativeFn) {
-      // Transpile the derivative function to remove TypeScript and import
-      // statements.
-      functionBody = sucraseTransform(derivativeFn, {
-        transforms: ["typescript", "imports"],
-      }).code;
-
-      // If the code doesn't have a default export, add one for the derivative
-      // function for backwards compatibility.
-      const defaultExportRegex = /exports\s*?\.\s*?default\s*?=/;
-      if (!defaultExportRegex.test(functionBody)) {
-        functionBody += "\nexports.default = derivative;";
-      }
-    } else {
-      functionBody = `exports.default = async ({
-        row,
-        db,
-        ref,
-        auth,
-        fetch,
-        rowy,
-        logging,
-        tableSchema,
-      }) => {${script}};`;
-    }
+    const functionBody = transpile(derivativeFn, script, "derivative");
 
     // Write the derivative function to a file.
     fs.writeFileSync(
