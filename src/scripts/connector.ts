@@ -65,7 +65,14 @@ export const connector = async (req: Request, res: Response) => {
     }
     const config = schemaDocData.columns[columnKey].config;
     const { connectorFn } = config;
-    const connectorFnBody = transpile(connectorFn, undefined, "connectorFn");
+    const importHeader = `import rowy from "./rowy";\n import fetch from "node-fetch";\n`;
+
+    const connectorFnBody = transpile(
+      importHeader,
+      connectorFn,
+      undefined,
+      "connectorFn"
+    );
 
     const { yarnStartTime, yarnFinishTime, dependenciesString } =
       await installDependenciesIfMissing(

@@ -141,12 +141,13 @@ export const getSchemaPaths = ({
 };
 
 export const transpile = (
+  importHeader: string,
   code: string | undefined,
   backwardsScript: string | undefined,
   defaultExportName: string
 ) => {
   if (code) {
-    let transpiledCode = sucraseTransform(code, {
+    let transpiledCode = sucraseTransform(importHeader + code, {
       transforms: ["typescript", "imports"],
     }).code;
 
@@ -157,13 +158,13 @@ export const transpile = (
 
     return transpiledCode;
   } else {
-    return `exports.default = async function ${defaultExportName}({
+    return `
+    ${importHeader}
+    exports.default = async function ${defaultExportName}({
       row,
       db,
       ref,
       auth,
-      fetch,
-      rowy,
       logging,
       tableSchema,
       utilFns,

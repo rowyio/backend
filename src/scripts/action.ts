@@ -69,9 +69,10 @@ export const actionScript = async (req: Request, res: Response) => {
     }
     const config = schemaDocData.columns[column.key].config;
     const { script, requiredRoles, requiredFields, runFn, undoFn } = config;
-
-    const runFunctionCode = transpile(runFn, script, "action");
+    const importHeader = `import rowy from "./rowy";\n import fetch from "node-fetch";\n`;
+    const runFunctionCode = transpile(importHeader, runFn, script, "action");
     const undoFunctionCode = transpile(
+      importHeader,
       undoFn,
       _get(config, "undo.script"),
       "action"

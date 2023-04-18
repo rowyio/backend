@@ -1,10 +1,9 @@
 import * as fs from "fs";
 import * as path from "path";
-import { transform as sucraseTransform } from "sucrase";
 import { IExtension } from "./types";
 import { getRequiredPackages } from "../../../utils";
 import { transpile } from "../../utils";
-
+const headerImports = `import rowy from '../rowy';\n import fetch from 'node-fetch';\n`;
 const removeInlineVersioning = (code: string) =>
   code.replace(
     /(?:require\(.*)@\d+\.\d+\.\d+/g,
@@ -63,7 +62,12 @@ export const serialiseDerivativeColumns = (
       );
     }
 
-    const functionBody = transpile(derivativeFn, script, "derivative");
+    const functionBody = transpile(
+      headerImports,
+      derivativeFn,
+      script,
+      "derivative"
+    );
 
     // Write the derivative function to a file.
     fs.writeFileSync(
@@ -95,11 +99,16 @@ export const serialiseDefaultValueColumns = (
     value:${typeof value === "string" ? `"${value}"` : JSON.stringify(value)},
    },\n`;
     } else if (type === "dynamic") {
-      const functionBody = transpile(dynamicValueFn, script, "dynamicValueFn");
+      const functionBody = transpile(
+        headerImports,
+        dynamicValueFn,
+        script,
+        "dynamicValueFn"
+      );
 
       const dir = path.resolve(
         __dirname,
-        `../../builds/${buildFolderTimestamp}/src/defaultValues`
+        `../../builds/${buildFolderTimestamp}/src/initialize`
       );
 
       if (!fs.existsSync(dir)) {
@@ -110,15 +119,15 @@ export const serialiseDefaultValueColumns = (
       fs.writeFileSync(
         path.resolve(
           __dirname,
-          `../../builds/${buildFolderTimestamp}/src/defaultValues/${currColumn.key}.js`
+          `../../builds/${buildFolderTimestamp}/src/initialize/${currColumn.key}.js`
         ),
         removeInlineVersioning(functionBody)
       );
 
       return `${acc}{\nfieldName:'${currColumn.key}',
     type:"${type}",
+    \/\/ script:require("./initialize/${currColumn.key}"),
     requiredPackages:${JSON.stringify(getRequiredPackages(functionBody))},
-    \/\/ script:require("./defaultValues/${currColumn.key}"),
    },\n`;
     } else {
       return `${acc}{\nfieldName:'${currColumn.key}',

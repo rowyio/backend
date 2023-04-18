@@ -53,8 +53,8 @@ export const evaluateDerivative = async (req: Request, res: Response) => {
     }
     const config = schemaDocData.columns[columnKey].config;
     const { derivativeFn, script } = config;
-
-    const code = transpile(derivativeFn, script, "derivative");
+    const importHeader = `import rowy from "./rowy";\n import fetch from "node-fetch";`;
+    const code = transpile(importHeader, derivativeFn, script, "derivative");
 
     const { yarnStartTime, yarnFinishTime, dependenciesString } =
       await installDependenciesIfMissing(
