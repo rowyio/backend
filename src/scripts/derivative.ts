@@ -8,6 +8,7 @@ import rowy from "./rowy";
 import { installDependenciesIfMissing } from "../utils";
 import { telemetryRuntimeDependencyPerformance } from "../rowyService";
 import { LoggingFactory } from "../logging";
+import { transpile } from "../functionBuilder/utils";
 
 type RequestData = {
   refs?: DocumentReference[]; // used in bulkAction
@@ -52,35 +53,8 @@ export const evaluateDerivative = async (req: Request, res: Response) => {
     }
     const config = schemaDocData.columns[columnKey].config;
     const { derivativeFn, script } = config;
-
-    // If the derivativeFn property is exists, use it. Otherwise, use the script
-    // property for backwards compatibility.
-    let code = "";
-    if (derivativeFn) {
-      // Transpile the derivative function to remove TypeScript and import
-      // statements.
-      code = sucraseTransform(derivativeFn, {
-        transforms: ["typescript", "imports"],
-      }).code;
-
-      // If the code doesn't have a default export, add one for the derivative
-      // function for backwards compatibility.
-      const defaultExportRegex = /exports\s*?\.\s*?default\s*?=/;
-      if (!defaultExportRegex.test(code)) {
-        code += "\nexports.default = derivative;";
-      }
-    } else {
-      code = `exports.default = async ({
-        row,
-        db,
-        ref,
-        auth,
-        fetch,
-        rowy,
-        logging,
-        tableSchema,
-      }) => {${script}};`;
-    }
+    const importHeader = `import rowy from "./rowy";\n import fetch from "node-fetch";`;
+    const code = transpile(importHeader, derivativeFn, script, "derivative");
 
     const { yarnStartTime, yarnFinishTime, dependenciesString } =
       await installDependenciesIfMissing(

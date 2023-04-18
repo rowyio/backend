@@ -26,7 +26,7 @@ const initializedDoc = (
       } else if (column.type === "dynamic") {
         return {
           ...(await acc),
-          [column.fieldName]: await column.script({
+          [column.fieldName]: await column.script.default({
             row: snapshot.data(),
             ref: snapshot.ref,
             db,

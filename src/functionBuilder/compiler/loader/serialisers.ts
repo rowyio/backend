@@ -1,9 +1,9 @@
 import * as fs from "fs";
 import * as path from "path";
-import { transform as sucraseTransform } from "sucrase";
 import { IExtension } from "./types";
 import { getRequiredPackages } from "../../../utils";
-
+import { transpile } from "../../utils";
+const headerImports = `import rowy from '../rowy';\n import fetch from 'node-fetch';\n`;
 const removeInlineVersioning = (code: string) =>
   code.replace(
     /(?:require\(.*)@\d+\.\d+\.\d+/g,
@@ -62,34 +62,12 @@ export const serialiseDerivativeColumns = (
       );
     }
 
-    // If the derivativeFn property is exists, use it. Otherwise, use the script
-    // property for backwards compatibility.
-    let functionBody = "";
-    if (derivativeFn) {
-      // Transpile the derivative function to remove TypeScript and import
-      // statements.
-      functionBody = sucraseTransform(derivativeFn, {
-        transforms: ["typescript", "imports"],
-      }).code;
-
-      // If the code doesn't have a default export, add one for the derivative
-      // function for backwards compatibility.
-      const defaultExportRegex = /exports\s*?\.\s*?default\s*?=/;
-      if (!defaultExportRegex.test(functionBody)) {
-        functionBody += "\nexports.default = derivative;";
-      }
-    } else {
-      functionBody = `exports.default = async ({
-        row,
-        db,
-        ref,
-        auth,
-        fetch,
-        rowy,
-        logging,
-        tableSchema,
-      }) => {${script}};`;
-    }
+    const functionBody = transpile(
+      headerImports,
+      derivativeFn,
+      script,
+      "derivative"
+    );
 
     // Write the derivative function to a file.
     fs.writeFileSync(
@@ -109,7 +87,8 @@ export const serialiseDerivativeColumns = (
   }, "")}]`;
 
 export const serialiseDefaultValueColumns = (
-  defaultValueColumns: any[]
+  defaultValueColumns: any[],
+  buildFolderTimestamp: string
 ): string =>
   `[${defaultValueColumns.reduce((acc, currColumn: any) => {
     const { dynamicValueFn, script, type, value } =
@@ -120,14 +99,35 @@ export const serialiseDefaultValueColumns = (
     value:${typeof value === "string" ? `"${value}"` : JSON.stringify(value)},
    },\n`;
     } else if (type === "dynamic") {
-      const functionBody =
-        dynamicValueFn.replace(/(.|\r\n)*=>/, "") ?? `{\n${script}\n}`;
+      const functionBody = transpile(
+        headerImports,
+        dynamicValueFn,
+        script,
+        "dynamicValueFn"
+      );
+
+      const dir = path.resolve(
+        __dirname,
+        `../../builds/${buildFolderTimestamp}/src/initialize`
+      );
+
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir);
+      }
+
+      // Write the dynamic value function to a file.
+      fs.writeFileSync(
+        path.resolve(
+          __dirname,
+          `../../builds/${buildFolderTimestamp}/src/initialize/${currColumn.key}.js`
+        ),
+        removeInlineVersioning(functionBody)
+      );
+
       return `${acc}{\nfieldName:'${currColumn.key}',
     type:"${type}",
+    \/\/ script:require("./initialize/${currColumn.key}"),
     requiredPackages:${JSON.stringify(getRequiredPackages(functionBody))},
-    script:async ({row,ref,db,auth,utilFns,logging}) => {
-      ${removeTrailingColon(removeInlineVersioning(functionBody))}
-  },
    },\n`;
     } else {
       return `${acc}{\nfieldName:'${currColumn.key}',

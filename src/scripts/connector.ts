@@ -9,6 +9,7 @@ import * as admin from "firebase-admin";
 import { installDependenciesIfMissing } from "../utils";
 import { telemetryRuntimeDependencyPerformance } from "../rowyService";
 import { LoggingFactory, RowyLogging } from "../logging";
+import { transpile } from "../functionBuilder/utils";
 
 type ConnectorRequest = {
   rowDocPath: string;
@@ -64,7 +65,14 @@ export const connector = async (req: Request, res: Response) => {
     }
     const config = schemaDocData.columns[columnKey].config;
     const { connectorFn } = config;
-    const connectorFnBody = connectorFn.replace(/^.*=>/, "");
+    const importHeader = `import rowy from "./rowy";\n import fetch from "node-fetch";\n`;
+
+    const connectorFnBody = transpile(
+      importHeader,
+      connectorFn,
+      undefined,
+      "connectorFn"
+    );
 
     const { yarnStartTime, yarnFinishTime, dependenciesString } =
       await installDependenciesIfMissing(
@@ -78,10 +86,7 @@ export const connector = async (req: Request, res: Response) => {
       rowDocPath
     );
 
-    const connectorScript = eval(
-      `async ({ row, db, ref, auth, fetch, rowy, storage, logging, tableSchema }) =>` +
-        connectorFnBody
-    ) as Connector;
+    const connectorScript = eval(connectorFnBody) as Connector;
     const pattern = /row(?!y)/;
     const functionUsesRow = pattern.test(connectorFnBody);
     const rowSnapshot = functionUsesRow
