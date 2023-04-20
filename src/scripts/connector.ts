@@ -89,12 +89,13 @@ export const connector = async (req: Request, res: Response) => {
     const connectorScript = eval(connectorFnBody) as Connector;
     const pattern = /row(?!y)/;
     const functionUsesRow = pattern.test(connectorFnBody);
-    const rowSnapshot = functionUsesRow
-      ? (await db.doc(rowDocPath).get()).data()
-      : null;
+    const rowSnapshot =
+      functionUsesRow && rowDocPath
+        ? (await db.doc(rowDocPath).get()).data()
+        : null;
     const results = await connectorScript({
       row: rowSnapshot,
-      ref: db.doc(rowDocPath),
+      ref: rowDocPath ? db.doc(rowDocPath) : null,
       query,
       db,
       auth,
