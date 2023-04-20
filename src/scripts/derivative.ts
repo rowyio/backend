@@ -65,10 +65,9 @@ export const evaluateDerivative = async (req: Request, res: Response) => {
     const logging = await LoggingFactory.createDerivativeLogging(
       columnKey,
       schemaDoc.ref.id,
-      collectionPath ?? ""
+      collectionPath ?? schemaDoc.ref.id
     );
-
-    const derivativeFunction = eval(code);
+    const derivativeFunction = eval(code.replace(`"use strict";`, ""));
     let rowSnapshots: FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData>[] =
       [];
     if (collectionPath) {
