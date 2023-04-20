@@ -19,13 +19,17 @@ export const R = {
         .filter((extensionConfig) =>
           extensionConfig.triggers.includes(triggerType)
         )
-        .map((extensionConfig) =>
-          extension(
-            extensionConfig,
-            functionConfig.fieldTypes,
-            functionConfig.tableSchema
-          )(change, context)
-        );
+        .map((extensionConfig) => {
+          try {
+            extension(
+              extensionConfig,
+              functionConfig.fieldTypes,
+              functionConfig.tableSchema
+            )(change, context);
+          } catch (err) {
+            console.log(`caught error: ${err}`);
+          }
+        });
       console.log(
         `#${
           extensionPromises.length

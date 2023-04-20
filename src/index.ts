@@ -55,7 +55,7 @@ const functionWrapper = (fn) => async (req, res) => {
     res.status(200).send(data);
   } catch (error) {
     console.error(error);
-    await telemetryError(req.path.slice(1), user, error);
+    await telemetryError(req.path.slice(1), error);
     res.status(500).send(error);
   }
 };

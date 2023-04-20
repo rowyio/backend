@@ -1,5 +1,5 @@
 import _get from "lodash/get";
-import { db, auth } from "../firebaseConfig";
+import { db, auth, storage } from "../firebaseConfig";
 import { Request, Response } from "express";
 import { User } from "../types/User";
 import fetch from "node-fetch";
@@ -8,6 +8,7 @@ import rowy from "./rowy";
 import { installDependenciesIfMissing } from "../utils";
 import { telemetryRuntimeDependencyPerformance } from "../rowyService";
 import { LoggingFactory } from "../logging";
+import { transpile } from "../functionBuilder/utils";
 
 type Ref = {
   id: string;
@@ -21,7 +22,7 @@ type ActionData = {
   schemaDocPath?: string; // table schema path
   column: any; // main needs action column key to find the script it needs to run
   action: "run" | "redo" | "undo"; // the different available modes
-  actionParams: any; // an object with values of action parameters 
+  actionParams: any; // an object with values of action parameters
 };
 
 const missingFieldsReducer = (data: any) => (acc: string[], curr: string) => {
@@ -68,19 +69,22 @@ export const actionScript = async (req: Request, res: Response) => {
     }
     const config = schemaDocData.columns[column.key].config;
     const { script, requiredRoles, requiredFields, runFn, undoFn } = config;
-    const runFunctionBody = runFn
-      ? runFn.replace(/^.*=>/, "")
-      : `{\n${script}\n}`;
-    const undoFunctionBody = undoFn
-      ? undoFn.replace(/^.*=>/, "")
-      : `{\n${_get(config, "undo.script")}\n}`;
+    const importHeader = `import rowy from "./rowy";\n import fetch from "node-fetch";\n`;
+    const runFunctionCode = transpile(importHeader, runFn, script, "action");
+    const undoFunctionCode = transpile(
+      importHeader,
+      undoFn,
+      _get(config, "undo.script"),
+      "action"
+    );
+
     if (!requiredRoles || requiredRoles.length === 0) {
       throw Error(`You need to specify at least one role to run this script`);
     }
     if (!requiredRoles.some((role) => userRoles.includes(role))) {
       throw Error(`You don't have the required roles permissions`);
     }
-    const codeToRun = action === "undo" ? undoFunctionBody : runFunctionBody;
+    const codeToRun = action === "undo" ? undoFunctionCode : runFunctionCode;
 
     const { yarnStartTime, yarnFinishTime, dependenciesString } =
       await installDependenciesIfMissing(
@@ -94,9 +98,7 @@ export const actionScript = async (req: Request, res: Response) => {
       ref.path
     );
 
-    const _actionScript = eval(
-      `async ({ row, db, ref, auth, utilFns, actionParams, user, fetch, rowy, tableSchema, logging }) => ${codeToRun}`
-    );
+    const _actionScript = eval(codeToRun);
     const getRows = refs
       ? refs.map(async (r) => db.doc(r.path).get())
       : [db.doc(ref.path).get()];
@@ -126,6 +128,7 @@ export const actionScript = async (req: Request, res: Response) => {
           fetch,
           rowy,
           logging,
+          storage,
           tableSchema: schemaDocData,
         });
         if (result.success || result.status) {

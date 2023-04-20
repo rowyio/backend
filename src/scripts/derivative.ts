@@ -2,11 +2,13 @@ import { db, auth } from "../firebaseConfig";
 import { Request, Response } from "express";
 import { User } from "../types/User";
 import fetch from "node-fetch";
+import { transform as sucraseTransform } from "sucrase";
 import { DocumentReference } from "firebase-admin/firestore";
 import rowy from "./rowy";
 import { installDependenciesIfMissing } from "../utils";
 import { telemetryRuntimeDependencyPerformance } from "../rowyService";
 import { LoggingFactory } from "../logging";
+import { transpile } from "../functionBuilder/utils";
 
 type RequestData = {
   refs?: DocumentReference[]; // used in bulkAction
@@ -51,11 +53,8 @@ export const evaluateDerivative = async (req: Request, res: Response) => {
     }
     const config = schemaDocData.columns[columnKey].config;
     const { derivativeFn, script } = config;
-    const code =
-      derivativeFn ??
-      `{
-      ${script}
-    }`;
+    const importHeader = `import rowy from "./rowy";\n import fetch from "node-fetch";`;
+    const code = transpile(importHeader, derivativeFn, script, "derivative");
 
     const { yarnStartTime, yarnFinishTime, dependenciesString } =
       await installDependenciesIfMissing(
@@ -66,13 +65,9 @@ export const evaluateDerivative = async (req: Request, res: Response) => {
     const logging = await LoggingFactory.createDerivativeLogging(
       columnKey,
       schemaDoc.ref.id,
-      collectionPath ?? ""
+      collectionPath ?? schemaDoc.ref.id
     );
-
-    const derivativeFunction = eval(
-      `async ({ row, db, ref, auth, fetch, rowy, logging, tableSchema }) =>` +
-        code.replace(/^.*=>/, "")
-    );
+    const derivativeFunction = eval(code.replace(`"use strict";`, ""));
     let rowSnapshots: FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData>[] =
       [];
     if (collectionPath) {

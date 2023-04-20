@@ -36,7 +36,7 @@ const telemetryInstance = axios.create({
     "Content-Type": "application/json",
   },
 });
-export const telemetry = async (event, token) => {
+export const telemetry = async (event) => {
   if (!projectId) {
     projectId = await getProjectId();
   }
@@ -45,17 +45,10 @@ export const telemetry = async (event, token) => {
     event,
     source: meta.name,
   };
-  if (token) {
-    body["user"] = {
-      email: token.email ?? "",
-      name: token.name ?? "",
-      uid: token.uid ?? "",
-    };
-  }
   return telemetryInstance.post(`monitor`, body);
 };
 
-export const telemetryError = async (event, token, error) => {
+export const telemetryError = async (event, error) => {
   if (!projectId) {
     projectId = await getProjectId();
   }
@@ -65,13 +58,6 @@ export const telemetryError = async (event, token, error) => {
     source: meta.name,
     error: JSON.stringify(error),
   };
-  if (token) {
-    body["user"] = {
-      email: token.email ?? "",
-      name: token.name ?? "",
-      uid: token.uid ?? "",
-    };
-  }
   console.log("error", body);
   return telemetryInstance.post(`error`, body);
 };
