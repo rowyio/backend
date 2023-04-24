@@ -32,7 +32,8 @@ export function generateId(length: number): string {
 
 export const hasRequiredFields = (requiredFields: string[], data: any) =>
   requiredFields.reduce((acc: boolean, currField: string) => {
-    if (data[currField] === undefined || data[currField] === null) return false;
+    const v = _.get(data, currField);
+    if (v === undefined || v === null) return false;
     else return acc;
   }, true);
 export async function asyncForEach(array: any[], callback: Function) {
