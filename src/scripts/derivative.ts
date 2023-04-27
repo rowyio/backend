@@ -1,4 +1,4 @@
-import { db, auth } from "../firebaseConfig";
+import { db, auth, storage } from "../firebaseConfig";
 import { Request, Response } from "express";
 import { User } from "../types/User";
 import fetch from "node-fetch";
@@ -91,6 +91,7 @@ export const evaluateDerivative = async (req: Request, res: Response) => {
             auth,
             ref: doc.ref,
             fetch,
+            storage,
             rowy,
             logging,
             tableSchema: schemaDocData,
