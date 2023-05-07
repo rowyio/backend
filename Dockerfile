@@ -13,6 +13,9 @@ COPY . ./
 RUN yarn
 RUN npx tsc
 RUN yarn build
+#  install ffmpeg
+RUN apk add --no-cache ffmpeg
+
 # Copy local code to the container image.
 
 

@@ -126,6 +126,10 @@ export const functionBuilder = async (
         /\/\/ script:require/g,
         "script:require"
       );
+      modifiedConfigFile = modifiedConfigFile.replace(
+        /\/\/ extensionBody:require/g,
+        "extensionBody:require"
+      );
       fs.writeFileSync(
         path.resolve(
           __dirname,
