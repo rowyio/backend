@@ -1,5 +1,14 @@
 import { getSecret } from "./utils";
 import { url2storage, data2storage } from "./utils/storage";
+import { GoogleAuth } from "google-auth-library";
+async function generateAccessToken() {
+  const auth = new GoogleAuth({
+    scopes: ["https://www.googleapis.com/auth/cloud-platform"],
+  });
+  const client = await auth.getClient();
+  const accessToken = await client.getAccessToken();
+  return accessToken.token;
+}
 type RowyFile = {
   downloadURL: string;
   name: string;
@@ -25,6 +34,7 @@ interface Rowy {
     projectNumber: () => Promise<string>;
     serviceAccountEmail: () => Promise<string>;
     serviceAccountUser: () => Promise<RowyUser>;
+    serviceAccountAccessToken: () => Promise<string>;
   };
   secrets: {
     get: (name: string, version?: string) => Promise<string | any | undefined>;
@@ -57,6 +67,7 @@ const rowy: Rowy = {
       uid: `serviceAccount:${process.env.GCLOUD_PROJECT}@appspot.gserviceaccount.com`,
       timestamp: new Date().getTime(),
     }),
+    serviceAccountAccessToken: generateAccessToken,
   },
   secrets: {
     get: getSecret,
