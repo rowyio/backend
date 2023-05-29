@@ -130,6 +130,10 @@ export const functionBuilder = async (
         /\/\/ extensionBody:require/g,
         "extensionBody:require"
       );
+      modifiedConfigFile = modifiedConfigFile.replace(
+        /\/\/ conditions:require/g,
+        "conditions:require"
+      );
       fs.writeFileSync(
         path.resolve(
           __dirname,
@@ -138,6 +142,7 @@ export const functionBuilder = async (
         modifiedConfigFile,
         "utf-8"
       );
+      await new Promise((resolve) => setTimeout(resolve, 100));
       await asyncExecute(
         `cd ${buildPath}; yarn deploy --project ${projectId} --only functions`,
         commandErrorHandler({ user }, streamLogger),
