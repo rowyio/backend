@@ -15,37 +15,66 @@ const removeTrailingColon = (code: string) => {
 };
 
 /* Convert extension objects into a single readable string */
-export const serialiseExtension = (extensions: IExtension[]): string =>
+export const serialiseExtension = (
+  extensions: IExtension[],
+  buildFolderTimestamp
+): string =>
   "[" +
   extensions
     .filter((extension) => extension.active)
-    .map(
-      (extension) => `{
+    .map((extension, i) => {
+      const extensionBody = transpile(
+        headerImports,
+        removeInlineVersioning(extension.extensionBody),
+        "",
+        "extensionBody"
+      );
+
+      // Write the derivative function to a file.
+      fs.writeFileSync(
+        path.resolve(
+          __dirname,
+          `../../builds/${buildFolderTimestamp}/src/extensions/${extension.name}_${i}_extensionBody.js`
+        ),
+        extensionBody
+      );
+
+      const conditions = transpile(
+        headerImports,
+        removeInlineVersioning(extension.conditions),
+        "",
+        "condition"
+      );
+      fs.writeFileSync(
+        path.resolve(
+          __dirname,
+          `../../builds/${buildFolderTimestamp}/src/extensions/${extension.name}_${i}_conditions.js`
+        ),
+        conditions
+      );
+      return `{
           name: "${extension.name}",
           type: "${extension.type}",
           triggers: [${extension.triggers
             .map((trigger) => `"${trigger}"`)
             .join(", ")}],
-          conditions: ${extension.conditions
-            .replace(/^.*:\s*Condition\s*=/, "")
-            .replace(/\s*;\s*$/, "")},
           requiredFields: [${extension.requiredFields
             ?.map((field) => `"${field}"`)
             .join(", ")}],
             trackedFields: [${extension.trackedFields
               ?.map((field) => `"${field}"`)
               .join(", ")}],
-            requiredPackages:${JSON.stringify(
-              getRequiredPackages(extension.extensionBody)
-            )},
-          extensionBody: ${removeTrailingColon(
-            removeInlineVersioning(extension.extensionBody).replace(
-              /^.*:\s*\w*Body\s*=/,
-              ""
-            )
+          \/\/ extensionBody:require("./extensions/${
+            extension.name
+          }_${i}_extensionBody"),
+          \/\/ conditions:require("./extensions/${
+            extension.name
+          }_${i}_conditions"),
+          requiredPackages:${JSON.stringify(
+            getRequiredPackages(extension.extensionBody)
           )}
-        }`
-    )
+        }`;
+    })
     .join(",") +
   "]";
 

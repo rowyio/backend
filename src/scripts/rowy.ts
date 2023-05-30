@@ -24,12 +24,23 @@ type uploadOptions = {
   folderPath?: string;
   fileName?: string;
 };
+import { GoogleAuth } from "google-auth-library";
+async function generateAccessToken() {
+  const auth = new GoogleAuth({
+    scopes: ["https://www.googleapis.com/auth/cloud-platform"],
+  });
+  const client = await auth.getClient();
+  const accessToken = await client.getAccessToken();
+  return accessToken.token;
+}
+
 export interface Rowy {
   metadata: {
     projectId: () => Promise<string>;
     projectNumber: () => Promise<string>;
     serviceAccountEmail: () => Promise<string>;
     serviceAccountUser: () => Promise<RowyUser>;
+    serviceAccountAccessToken: () => Promise<string>;
   };
   secrets: {
     get: (name: string, version?: string) => Promise<string | any | undefined>;
@@ -53,6 +64,7 @@ const rowy: Rowy = {
     projectNumber: getNumericProjectId,
     serviceAccountEmail: getServiceAccountEmail,
     serviceAccountUser: getServiceAccountUser,
+    serviceAccountAccessToken: generateAccessToken,
   },
   secrets: {
     get: getSecret,

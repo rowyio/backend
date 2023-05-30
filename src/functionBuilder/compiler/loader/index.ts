@@ -149,7 +149,7 @@ export const generateFile = async (configData, buildFolderTimestamp) => {
       buildFolderTimestamp
     ),
     documentSelectConfig: serialiseDocumentSelectColumns(documentSelectColumns),
-    extensionsConfig: serialiseExtension(extensions),
+    extensionsConfig: serialiseExtension(extensions, buildFolderTimestamp),
     runtimeOptions: JSON.stringify({
       serviceAccount: `rowy-functions@${projectId}.iam.gserviceaccount.com`,
       ...runtimeOptions,
