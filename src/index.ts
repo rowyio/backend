@@ -30,7 +30,12 @@ import { metadataService, getProjectId } from "./metadataService";
 import { getLogs } from "./logging";
 import { auditChange } from "./logging/auditChange";
 import { telemetryError } from "./rowyService";
-import { listSecrets } from "./secretManager";
+import {
+  listSecrets,
+  addSecret,
+  editSecret,
+  deleteSecret,
+} from "./secretManager";
 import { connector } from "./scripts/connector";
 import { triggerJob } from "./runJobs";
 
@@ -140,7 +145,7 @@ app.post(
 
 app.get("/logs", requireAuth, hasAnyRole(["ADMIN"]), functionWrapper(getLogs));
 
-//metadata service
+// metadata service
 app.get("/metadata", requireAuth, hasAnyRole(["ADMIN"]), metadataService);
 
 // get algoia search key
@@ -164,14 +169,30 @@ app.get(
 
 app.post("/auditChange", requireAuth, functionWrapper(auditChange));
 
-//SECRET MANAGEMENT
-// list Secrets
-
+// SECRET MANAGEMENT
 app.get(
   "/listSecrets",
   requireAuth,
   hasAnyRole(["ADMIN"]),
   functionWrapper(listSecrets)
+);
+app.get(
+  "/addSecret",
+  requireAuth,
+  hasAnyRole(["ADMIN"]),
+  functionWrapper(addSecret)
+);
+app.get(
+  "/editSecret",
+  requireAuth,
+  hasAnyRole(["ADMIN"]),
+  functionWrapper(editSecret)
+);
+app.get(
+  "/deleteSecret",
+  requireAuth,
+  hasAnyRole(["ADMIN"]),
+  functionWrapper(deleteSecret)
 );
 
 app.post(
