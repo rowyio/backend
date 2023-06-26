@@ -14,15 +14,8 @@ const extension =
     const ref = change.after ? change.after.ref : change.before.ref;
     const triggerType = getTriggerType(change);
     try {
-      const {
-        name,
-        type,
-        triggers,
-        conditions,
-        requiredFields,
-        trackedFields,
-        extensionBody,
-      } = extensionConfig;
+      const { name, type, triggers, requiredFields, trackedFields } =
+        extensionConfig;
       const loggingCondition = await LoggingFactory.createExtensionLogging(
         type,
         "condition",
@@ -74,16 +67,15 @@ const extension =
         console.log("requiredFields are ", requiredFields, "type is", type);
         return false; // check if it hase required fields for the extension to run
       }
-      const dontRun = conditions
-        ? !(typeof conditions === "function"
-            ? await conditions(extensionContextCondition)
-            : conditions)
-        : false; //
-
+      const dontRun = !(await extensionConfig.conditions.default(
+        extensionContextCondition
+      ));
       console.log(`name: "${name}", type: "${type}", dontRun: ${dontRun}`);
 
       if (dontRun) return false;
-      const extensionData = await extensionBody(extensionContextFunction);
+      const extensionData = await extensionConfig.extensionBody.default(
+        extensionContextFunction
+      );
       console.log(`extensionData: ${JSON.stringify(extensionData)}`);
       const extensionFn = require(`./${type}`).default;
       await extensionFn(extensionData, extensionContext);

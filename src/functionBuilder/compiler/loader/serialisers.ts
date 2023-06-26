@@ -43,7 +43,7 @@ export const serialiseExtension = (
         headerImports,
         removeInlineVersioning(extension.conditions),
         "",
-        "conditions"
+        "condition"
       );
       fs.writeFileSync(
         path.resolve(
@@ -64,15 +64,15 @@ export const serialiseExtension = (
             trackedFields: [${extension.trackedFields
               ?.map((field) => `"${field}"`)
               .join(", ")}],
-            requiredPackages:${JSON.stringify(
-              getRequiredPackages(extension.extensionBody)
-            )},
           \/\/ extensionBody:require("./extensions/${
             extension.name
           }_${i}_extensionBody"),
           \/\/ conditions:require("./extensions/${
             extension.name
           }_${i}_conditions"),
+          requiredPackages:${JSON.stringify(
+            getRequiredPackages(extension.extensionBody)
+          )}
         }`;
     })
     .join(",") +
