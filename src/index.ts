@@ -176,24 +176,9 @@ app.get(
   hasAnyRole(["ADMIN"]),
   functionWrapper(listSecrets)
 );
-app.get(
-  "/addSecret",
-  requireAuth,
-  hasAnyRole(["ADMIN"]),
-  functionWrapper(addSecret)
-);
-app.get(
-  "/editSecret",
-  requireAuth,
-  hasAnyRole(["ADMIN"]),
-  functionWrapper(editSecret)
-);
-app.get(
-  "/deleteSecret",
-  requireAuth,
-  hasAnyRole(["ADMIN"]),
-  functionWrapper(deleteSecret)
-);
+app.post("/addSecret", requireAuth, hasAnyRole(["ADMIN"]), addSecret);
+app.post("/editSecret", requireAuth, hasAnyRole(["ADMIN"]), editSecret);
+app.post("/deleteSecret", requireAuth, hasAnyRole(["ADMIN"]), deleteSecret);
 
 app.post(
   "/triggerJob",
