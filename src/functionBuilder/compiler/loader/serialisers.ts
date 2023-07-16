@@ -125,7 +125,11 @@ export const serialiseDefaultValueColumns = (
     if (type === "static") {
       return `${acc}{\nfieldName:'${currColumn.key}',
     type:"${type}",
-    value:${typeof value === "string" ? `"${value}"` : JSON.stringify(value)},
+    value:${
+      typeof value === "string"
+        ? `"${value.replace(/"/g, `\\"`)}"`
+        : JSON.stringify(value)
+    },
    },\n`;
     } else if (type === "dynamic") {
       const functionBody = transpile(
