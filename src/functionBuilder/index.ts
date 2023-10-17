@@ -61,7 +61,7 @@ export const functionBuilder = async (
         tables,
         tableConfigPath,
       });
-      const projectId = process.env.DEV
+      const projectId = process.env.LOCAL
         ? require("../../firebase-adminsdk.json").project_id
         : await getProjectId();
       await Promise.all([
