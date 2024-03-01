@@ -4,7 +4,10 @@ import { generateServiceAccessToken, getProjectId } from "./metadataService";
 const meta = require("../package.json");
 
 const getAxiosInstance = async () => {
-  const baseURL = "https://rowy.run/";
+  const baseURL =
+    process.env.DEV === "true"
+      ? "https://rowy-run-service-gkxqefhk3q-uc.a.run.app"
+      : "https://rowy.run/";
   const authToken = await generateServiceAccessToken(baseURL);
   return axios.create({
     baseURL,
