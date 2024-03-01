@@ -36,7 +36,7 @@
   },
   "devDependencies": {
     "@types/express": "^4.17.13",
-    "@types/node": "^16.6.1",
+    "@types/node": "20.11.24",
     "firebase-tools": "^11.25.2",
     "google-auth-library": "^8.8.0",
     "husky": "^4.3.8",
@@ -48,7 +48,7 @@
     "supertest": "^6.0.0",
     "ts-node": "^9.1.1",
     "tslint": "^6.1.0",
-    "typescript": "^4.2.3"
+    "typescript": "^4.6.0"
   },
   "husky": {
     "hooks": {
