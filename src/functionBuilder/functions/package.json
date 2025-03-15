@@ -5,7 +5,7 @@
     "deploy": "echo 'n\n' | firebase deploy --interactive"
   },
   "engines": {
-    "node": "18"
+    "node": "22"
   },
   "main": "src/index.js",
   "dependencies": {
@@ -15,11 +15,11 @@
     "file-type": "^16.5.3",
     "firebase-admin": "^11.3.0",
     "firebase-functions": "^4.1.0",
+    "google-auth-library": "8.8.0",
     "lodash": "^4.17.21",
     "node-fetch": "^2.6.7",
-    "uuid": "^8.3.2",
-    "google-auth-library": "8.8.0"
+    "uuid": "^8.3.2"
   },
-  "devDependencies": {},
-  "private": true
+  "private": true,
+  "packageManager": "yarn@1.22.1"
 }
