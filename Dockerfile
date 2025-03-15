@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM node:22-alpine
 
 # Create and change to the app directory.
 WORKDIR /home/node/app
@@ -15,9 +15,6 @@ RUN npx tsc
 RUN yarn build
 #  install ffmpeg
 RUN apk add --no-cache ffmpeg
-
-# Copy local code to the container image.
-
 
 # Run the web service on container startup.
 CMD [ "yarn", "start" ]
