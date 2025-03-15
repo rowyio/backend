@@ -1,6 +1,6 @@
 #!/bin/bash
 name=rowy-backend
-region=us-central1
+region=asia-southeast1
 helpFunction()
 {
    echo "Usage: ./deploy.sh --project [YOUR GCLOUD PROJECT ID]"
@@ -28,5 +28,5 @@ fi
 npx tsc
 npm run build
 gcloud config set project $project_id
-gcloud builds submit --tag gcr.io/$project_id/$name
+gcloud builds submit --tag gcr.io/$project_id/$name # --region $region # I can't build in asia-southeast1 due to project restriction at asia-southeast1
 gcloud run deploy $name --image gcr.io/$project_id/$name --platform managed --cpu 1000m --memory 2Gi --allow-unauthenticated --region $region
