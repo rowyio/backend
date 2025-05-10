@@ -13,12 +13,12 @@
     "@google-cloud/secret-manager": "^4.1.4",
     "@google-cloud/storage": "6.7.0",
     "file-type": "^16.5.3",
-    "firebase-admin": "^11.3.0",
-    "firebase-functions": "^4.1.0",
+    "firebase-admin": "^13.3.0",
+    "firebase-functions": "^6.3.2",
+    "google-auth-library": "8.8.0",
     "lodash": "^4.17.21",
     "node-fetch": "^2.6.7",
-    "uuid": "^8.3.2",
-    "google-auth-library": "8.8.0"
+    "uuid": "^8.3.2"
   },
   "devDependencies": {},
   "private": true
