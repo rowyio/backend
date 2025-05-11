@@ -1,4 +1,4 @@
-import * as functions from "firebase-functions";
+import * as functions from "firebase-functions/v1";
 import utilFns, { hasRequiredFields, getTriggerType } from "../utils";
 import { db, auth, storage } from "../firebaseConfig";
 import { LoggingFactory } from "../logging";

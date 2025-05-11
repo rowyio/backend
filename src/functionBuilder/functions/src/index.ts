@@ -1,4 +1,4 @@
-import * as functions from "firebase-functions";
+import * as functions from "firebase-functions/v1";
 import derivative from "./derivatives";
 import extension from "./extensions";
 import * as config from "./functionConfig";
