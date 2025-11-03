@@ -109,7 +109,7 @@ export default async function generateConfig(
 
   await streamLogger.info(`Validating config file...`);
   const isFunctionConfigValid = await asyncExecute(
-    `cd ${buildPath}/src;tsc functionConfig.ts`,
+    `cd ${buildPath}/src;tsc --skipLibCheck functionConfig.ts`,
     commandErrorHandler(
       {
         user,
