@@ -32,7 +32,7 @@ export const addExtensionLib = async (
       extension
     );
     await asyncExecute(
-      `cd ${buildPath}/src/extensions;tsc ${name}.ts`,
+      `cd ${buildPath}/src/extensions;tsc --target ES2020 --module commonjs --skipLibCheck ${name}.ts`,
       commandErrorHandler(
         {
           user,
